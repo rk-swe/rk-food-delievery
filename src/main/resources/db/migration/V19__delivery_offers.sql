@@ -1,0 +1,3 @@
+CREATE TABLE delivery_offers (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), order_id uuid NOT NULL REFERENCES orders(id), partner_id uuid NOT NULL REFERENCES users(id), round integer NOT NULL, status varchar(30) NOT NULL DEFAULT 'Offered', expires_at timestamptz NOT NULL, created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT delivery_offers_order_partner_round_unique UNIQUE(order_id,partner_id,round));
+CREATE INDEX delivery_offers_partner_idx ON delivery_offers(partner_id,status,expires_at);
+CREATE UNIQUE INDEX orders_active_partner_unique ON orders(delivery_partner_id) WHERE delivery_partner_id IS NOT NULL AND order_status IN ('Accepted','Preparing','Ready for pickup','Out for delivery');

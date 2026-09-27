@@ -1,5 +1,6 @@
 package com.rk.fooddelivery.config;
 
+import com.rk.fooddelivery.auth.JwtUserAuthenticationConverter;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
@@ -9,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,7 +30,16 @@ public class SecurityConfig {
   }
 
   @Bean
-  SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper objectMapper)
+  AuthenticationManager authenticationManager(AuthenticationConfiguration configuration)
+      throws Exception {
+    return configuration.getAuthenticationManager();
+  }
+
+  @Bean
+  SecurityFilterChain securityFilterChain(
+      HttpSecurity http,
+      ObjectMapper objectMapper,
+      JwtUserAuthenticationConverter jwtUserAuthenticationConverter)
       throws Exception {
     http.csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
         .sessionManagement(
@@ -35,6 +47,10 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             authorize ->
                 authorize
+                    .requestMatchers(HttpMethod.POST, "/api/auth/tokens")
+                    .permitAll()
+                    .requestMatchers("/api/admin/**")
+                    .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, "/api/cities", "/api/cities/**")
                     .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.PATCH, "/api/cities", "/api/cities/**")
@@ -45,7 +61,11 @@ public class SecurityConfig {
                     .authenticated()
                     .anyRequest()
                     .permitAll())
-        .httpBasic(basic -> basic.authenticationEntryPoint(authenticationEntryPoint(objectMapper)))
+        .oauth2ResourceServer(
+            resourceServer ->
+                resourceServer
+                    .authenticationEntryPoint(authenticationEntryPoint(objectMapper))
+                    .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtUserAuthenticationConverter)))
         .exceptionHandling(
             exceptions ->
                 exceptions

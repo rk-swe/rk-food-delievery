@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -52,6 +53,19 @@ public class ApiExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 "NOT_FOUND",
                 exception.getMessage(),
+                requestId(request),
+                List.of()));
+  }
+
+  @ExceptionHandler(AuthenticationException.class)
+  ResponseEntity<ApiError> handleAuthentication(
+      AuthenticationException exception, HttpServletRequest request) {
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+        .body(
+            new ApiError(
+                HttpStatus.UNAUTHORIZED.value(),
+                "UNAUTHENTICATED",
+                "Authentication is required",
                 requestId(request),
                 List.of()));
   }

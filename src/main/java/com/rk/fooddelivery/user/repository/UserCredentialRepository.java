@@ -13,5 +13,8 @@ public interface UserCredentialRepository extends JpaRepository<UserCredential, 
           + "where lower(credential.username) = lower(:username)")
   Optional<UserCredential> findWithUserByUsernameIgnoreCase(String username);
 
-  boolean existsByUsernameIgnoreCase(String username);
+  @Query(
+      "select credential from UserCredential credential join fetch credential.user "
+          + "where credential.id = :userId")
+  Optional<UserCredential> findWithUserByUserId(UUID userId);
 }

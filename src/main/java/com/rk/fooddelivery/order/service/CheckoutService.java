@@ -7,6 +7,8 @@ import com.rk.fooddelivery.cart.repository.CartItemRepository;
 import com.rk.fooddelivery.cart.repository.CartRepository;
 import com.rk.fooddelivery.common.error.DomainException;
 import com.rk.fooddelivery.common.error.NotFoundException;
+import com.rk.fooddelivery.common.idempotency.IdempotencyService;
+import com.rk.fooddelivery.common.idempotency.StoredResponse;
 import com.rk.fooddelivery.event.dto.DomainEvent;
 import com.rk.fooddelivery.event.dto.DomainEventType;
 import com.rk.fooddelivery.event.outbox.OutboxService;
@@ -27,6 +29,7 @@ import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class CheckoutService {
@@ -39,6 +42,8 @@ public class CheckoutService {
   private final UserRepository users;
   private final RestaurantRepository restaurants;
   private final OutboxService outbox;
+  private final IdempotencyService idempotency;
+  private final ObjectMapper json;
   private final CurrentUser current;
   private final Clock clock;
 
@@ -52,6 +57,8 @@ public class CheckoutService {
       UserRepository users,
       RestaurantRepository restaurants,
       OutboxService outbox,
+      IdempotencyService idempotency,
+      ObjectMapper json,
       CurrentUser current,
       Clock clock) {
     this.carts = carts;
@@ -63,6 +70,8 @@ public class CheckoutService {
     this.users = users;
     this.restaurants = restaurants;
     this.outbox = outbox;
+    this.idempotency = idempotency;
+    this.json = json;
     this.current = current;
     this.clock = clock;
   }
@@ -72,8 +81,30 @@ public class CheckoutService {
     if (!current.requireRole(Role.CUSTOMER).id().equals(customerId))
       throw new org.springframework.security.access.AccessDeniedException(
           "Customer does not own checkout");
-    if (idempotencyKey == null || idempotencyKey.isBlank())
-      throw new DomainException("Idempotency-Key is required");
+    StoredResponse cached =
+        idempotency.execute(
+            customerId,
+            "checkout",
+            idempotencyKey,
+            request.toString(),
+            null,
+            () -> {
+              OrderResponse response = placeNew(customerId, request);
+              try {
+                return new StoredResponse(
+                    201, json.writeValueAsString(response), "/api/orders/" + response.id());
+              } catch (Exception exception) {
+                throw new IllegalStateException("Unable to serialize checkout response", exception);
+              }
+            });
+    try {
+      return json.readValue(cached.body(), OrderResponse.class);
+    } catch (Exception exception) {
+      throw new IllegalStateException("Unable to read stored checkout response", exception);
+    }
+  }
+
+  private OrderResponse placeNew(UUID customerId, CheckoutRequest request) {
     User customer =
         users
             .findLockedById(customerId)

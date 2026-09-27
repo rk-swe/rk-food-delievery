@@ -15,24 +15,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/restaurants")
 public class OwnerRestaurantController {
-    private final AdminCrudService service;
-    private final CurrentUser current;
+  private final AdminCrudService service;
+  private final CurrentUser current;
 
-    public OwnerRestaurantController(AdminCrudService service, CurrentUser current) {
-        this.service = service;
-        this.current = current;
-    }
+  public OwnerRestaurantController(AdminCrudService service, CurrentUser current) {
+    this.service = service;
+    this.current = current;
+  }
 
-    @GetMapping("/mine")
-    public PageResponse<RestaurantResponse> mine(
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-        return service.restaurants(current.requireRole(Role.RESTAURANT_OWNER).id(), page, size);
-    }
+  @GetMapping("/mine")
+  public PageResponse<RestaurantResponse> mine(
+      @RequestParam(defaultValue = "0") @Min(0) int page,
+      @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+    return service.restaurants(current.requireRole(Role.RESTAURANT_OWNER).id(), page, size);
+  }
 
-    @PatchMapping("/{id}/hours")
-    public RestaurantResponse hours(@PathVariable UUID id, @Valid @RequestBody HoursPatch request) {
-        UUID ownerId = current.requireRole(Role.RESTAURANT_OWNER).id();
-        return service.updateRestaurantHours(ownerId, id, request.hours());
-    }
+  @PatchMapping("/{id}/hours")
+  public RestaurantResponse hours(@PathVariable UUID id, @Valid @RequestBody HoursPatch request) {
+    UUID ownerId = current.requireRole(Role.RESTAURANT_OWNER).id();
+    return service.updateRestaurantHours(ownerId, id, request.hours());
+  }
 }

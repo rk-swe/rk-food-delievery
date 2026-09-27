@@ -96,3 +96,58 @@ Task 4: verification before commit: `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libe
 Task 4 correction round 1: rebased onto integration `1bc5030`. RED: `MenuCorrectionIntegrationTest` exposed missing inactive-menu visibility enforcement, absent item/category deletion semantics, incomplete-coordinate 500 handling, and an untyped null menu-name JPQL binding. GREEN focused command `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ./mvnw -Dtest=MenuCorrectionIntegrationTest,MenuManagementIntegrationTest,RestaurantSearchIntegrationTest,MenuSearchIntegrationTest test` → 6 tests, 0 failures/errors. Full `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ./mvnw test` → 49 tests, 0 failures/errors. Added guarded category deletion, item deactivation/count updates, owner/admin unavailable-menu inspection, public active-city menu visibility, and explicit incomplete-coordinate 400 handling; formatted Task 4 sources. Commit: `ffaf854 fix: correct menu visibility and lifecycle behavior`.
 
 Task 4 correction round 2: RED observed `RestaurantSearchIntegrationTest.customerLocationIsUsedWhenRadiusIsSuppliedWithoutCoordinates` returned 400 rather than searching around the persisted customer geography. Added principal-backed `users.location` fallback for radius-only searches, while missing stored location remains a 400. Focused `RestaurantSearchIntegrationTest,MenuCorrectionIntegrationTest,MenuManagementIntegrationTest,MenuSearchIntegrationTest` passed 7 tests; full suite passed 50 tests, all with zero failures/errors. Commit: pending.
+
+## Task 4 correction round 4 — 2026-09-28
+
+Owner: Task 4 implementation lane; dependency: verified REST/JPA/JWT prerequisite
+and Task 4 corrections through `0d251cd`. Replaced native ordinary restaurant
+search with JPQL result/count queries; radius/distance requests alone use the
+custom PostGIS branch (`ST_DWithin` meters, `ST_Distance` ordering). Shared
+predicate construction enforces admin/owner/public visibility before result
+pagination and counting. Added city, UUID cuisine match-any, minimum cost,
+allowlisted name/rating/cost/distance sorts and UUID ties. Menu search now has
+price/rating/display sorting, availability filtering and validated price ranges.
+
+Fixed duplicate category create/rename conflicts to flush and translate to 409,
+owner isolation, and active counts on availability changes, moves and repeated
+item deactivation. Coordinator ruling: category DELETE must require no active
+items while retaining historical item references. Assigned forward migration
+`V14__menu_category_deactivation.sql` adds `menu_categories.active`; public
+category result/count queries exclude inactive categories, and item creation,
+movement or reactivation cannot activate items in them. Hibernate still validates
+Flyway's schema. README documents parameters and lifecycle semantics.
+
+RED before fixes: `RestaurantDiscoveryRegressionTest,MenuCorrectionIntegrationTest`
+ran 9 tests, 6 assertion failures plus the expected unhandled duplicate-category
+constraint exception. Subsequent green: 9/9. Menu sort/availability RED:
+`MenuSearchIntegrationTest` expected Veg Thali first but got Hidden Chicken;
+green: 2/2. Category lifecycle RED expected DELETE 204 after item deactivation
+but got 409; green: 5/5. Regressions also cover concurrent stock decrements,
+cross-owner denial, active-item category deletion guard, historical references,
+UUID cuisine deduplication, stored/missing/incomplete coordinates, zero radius,
+both sides of a measured PostGIS radius boundary, and pagination ties.
+
+Final verification with
+`JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home`:
+- `./mvnw -Dtest=MenuManagementIntegrationTest,RestaurantSearchIntegrationTest,MenuSearchIntegrationTest,MenuCorrectionIntegrationTest,RestaurantDiscoveryRegressionTest test`
+  passed 15 tests, 0 failures/errors/skips (27.012 seconds).
+- `./mvnw test` passed 58 tests, 0 failures/errors/skips (32.989 seconds).
+- Targeted Spotless formatting and `git diff --check` passed.
+
+All database/broker tests were serialized in the coordinator-granted slot using
+`fooddelivery_assignment_test` PostGIS and the local matching RabbitMQ vhost.
+Measured first RED start to final full-suite completion: 08:47:15–08:52:57 IST,
+5 minutes 42 seconds; pre-test inspection/setup was not separately timed. The
+slot was granted before RED was ready, so no measured test-slot wait. Additional
+menu/category red-green runs were required by the remaining spec gaps above.
+Expected constraint-rejection logs and existing JVM/SpringDoc warnings remain.
+Commit: `fix: complete task 4 discovery and category lifecycle` (this commit).
+Next ready task: 5 after coordinator integration; task 6 is the parallel lane.
+
+Task 4: coordinator integrated commits `1bc5030`, `a5c33cd`, `3d363c9`, and
+`94e41ed` on `codex/tasks-4-13`. Independent scoped re-review found all nine
+previous Important findings addressed and no new Critical/Important issue.
+Task 4 complete (commits `007c25d..94e41ed`, review clean). Ruling: categories
+soft-deactivate through V14 and permit deletion only when no active items
+remain, preserving historical references; this costs a retained inactive
+category record if an application needs physical deletion later.

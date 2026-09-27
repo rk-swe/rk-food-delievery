@@ -27,6 +27,9 @@ public class MenuItem {
   @Column(nullable = false, precision = 10, scale = 2)
   private BigDecimal price;
 
+  @Column(name = "average_rating", nullable = false, precision = 3, scale = 2)
+  private BigDecimal averageRating = BigDecimal.ZERO;
+
   @Column(name = "sort_order", nullable = false)
   private int sortOrder;
 

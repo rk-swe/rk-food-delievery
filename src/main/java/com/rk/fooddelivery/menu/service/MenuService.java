@@ -36,18 +36,22 @@ public class MenuService {
     MenuCategory category =
         new MenuCategory(
             UUID.randomUUID(), restaurantId, trim(request.name()), request.sortOrder(), owner);
-    categories.saveAndFlush(category);
+    saveCategory(category);
     return category(category);
   }
 
   @Transactional(readOnly = true)
   public PageResponse<CategoryResponse> categories(UUID restaurantId, int page, int size) {
-    visibleRestaurant(restaurantId);
-    List<CategoryResponse> content =
-        categories.findByRestaurantIdOrdered(restaurantId).stream().map(this::category).toList();
-    int from = Math.min(page * size, content.size());
-    int to = Math.min(from + size, content.size());
-    return PageResponse.of(content.subList(from, to), page, size, content.size());
+    var actor = visibleRestaurant(restaurantId);
+    boolean includeInactive = actor.role() == Role.ADMIN || actor.role() == Role.RESTAURANT_OWNER;
+    var result =
+        categories.findByRestaurantIdOrdered(
+            restaurantId, includeInactive, PageRequest.of(page, size));
+    return PageResponse.of(
+        result.getContent().stream().map(this::category).toList(),
+        page,
+        size,
+        result.getTotalElements());
   }
 
   @Transactional
@@ -59,6 +63,7 @@ public class MenuService {
             .filter(c -> c.getRestaurantId().equals(restaurantId))
             .orElseThrow(() -> new NotFoundException("Menu category not found"));
     category.patch(trim(request.name()), request.sortOrder(), owner);
+    saveCategory(category);
     return category(category);
   }
 
@@ -70,6 +75,7 @@ public class MenuService {
             .findLockedById(request.categoryId())
             .filter(c -> c.getRestaurantId().equals(restaurantId))
             .orElseThrow(() -> new DomainException("Menu category does not belong to restaurant"));
+    if (!category.isActive()) throw new DomainException("Menu category is inactive");
     MenuItem item =
         new MenuItem(
             UUID.randomUUID(),
@@ -92,18 +98,23 @@ public class MenuService {
     MenuItem item =
         items.findLockedById(id).orElseThrow(() -> new NotFoundException("Menu item not found"));
     UUID owner = owner(item.getRestaurantId());
-    UUID categoryId = request.categoryId();
-    if (categoryId != null && !categoryId.equals(item.getCategoryId())) {
-      MenuCategory next =
-          categories
-              .findLockedById(categoryId)
-              .filter(c -> c.getRestaurantId().equals(item.getRestaurantId()))
-              .orElseThrow(
-                  () -> new DomainException("Menu category does not belong to restaurant"));
-      MenuCategory previous = categories.findLockedById(item.getCategoryId()).orElseThrow();
-      previous.incrementItemCount(-1, owner);
-      next.incrementItemCount(1, owner);
-    }
+    UUID categoryId = request.categoryId() == null ? item.getCategoryId() : request.categoryId();
+    boolean wasAvailable = item.isAvailable();
+    boolean willBeAvailable = request.available() == null ? wasAvailable : request.available();
+    // Restaurant row is already locked by owner(), serializing category count changes.
+    MenuCategory previous = categories.findLockedById(item.getCategoryId()).orElseThrow();
+    MenuCategory next =
+        categoryId.equals(item.getCategoryId())
+            ? previous
+            : categories
+                .findLockedById(categoryId)
+                .filter(c -> c.getRestaurantId().equals(item.getRestaurantId()))
+                .orElseThrow(
+                    () -> new DomainException("Menu category does not belong to restaurant"));
+    if (!next.isActive() && (willBeAvailable || !categoryId.equals(item.getCategoryId())))
+      throw new DomainException("Menu category is inactive");
+    if (wasAvailable) previous.incrementItemCount(-1, owner);
+    if (willBeAvailable) next.incrementItemCount(1, owner);
     item.patch(
         categoryId,
         trim(request.name()),
@@ -131,15 +142,15 @@ public class MenuService {
 
   @Transactional
   public void deleteCategory(UUID restaurantId, UUID categoryId) {
-    owner(restaurantId);
+    UUID actor = owner(restaurantId);
     MenuCategory category =
         categories
             .findLockedById(categoryId)
             .filter(c -> c.getRestaurantId().equals(restaurantId))
             .orElseThrow(() -> new NotFoundException("Menu category not found"));
-    if (items.existsByCategoryId(categoryId))
-      throw new DomainException("Menu category still has items");
-    categories.delete(category);
+    if (items.existsByCategoryIdAndAvailableTrue(categoryId))
+      throw new DomainException("Menu category still has active items");
+    category.deactivate(actor);
   }
 
   @Transactional
@@ -163,6 +174,22 @@ public class MenuService {
                     .findById(restaurantId)
                     .filter(r -> r.getOwnerId().equals(actor.id()))
                     .isPresent());
+    if (request.minPrice() != null
+        && request.maxPrice() != null
+        && request.minPrice().compareTo(request.maxPrice()) > 0)
+      throw new org.springframework.web.server.ResponseStatusException(
+          org.springframework.http.HttpStatus.BAD_REQUEST, "Minimum price exceeds maximum price");
+    String sortField =
+        switch (request.sort().split(",")[0]) {
+          case "price" -> "price";
+          case "rating" -> "averageRating";
+          case "displayOrder" -> "sortOrder";
+          default -> throw new IllegalArgumentException("Unsupported menu sort");
+        };
+    Sort.Direction direction =
+        request.sort().endsWith(",desc") || request.sort().equals("rating")
+            ? Sort.Direction.DESC
+            : Sort.Direction.ASC;
     Page<MenuItem> result =
         items.search(
             restaurantId,
@@ -172,7 +199,9 @@ public class MenuService {
             request.maxPrice(),
             request.name() == null ? "" : trim(request.name()),
             includeUnavailable,
-            PageRequest.of(request.page(), request.size()));
+            request.available(),
+            PageRequest.of(
+                request.page(), request.size(), Sort.by(direction, sortField).and(Sort.by("id"))));
     return PageResponse.of(
         result.getContent().stream().map(this::item).toList(),
         request.page(),
@@ -196,15 +225,22 @@ public class MenuService {
             .findById(restaurantId)
             .orElseThrow(() -> new NotFoundException("Restaurant not found"));
     if (user.role() == Role.ADMIN) return user;
-    if (user.role() == Role.RESTAURANT_OWNER && restaurant.getOwnerId().equals(user.id()))
-      return user;
+    if (user.role() == Role.RESTAURANT_OWNER) {
+      if (restaurant.getOwnerId().equals(user.id())) return user;
+      throw new NotFoundException("Restaurant not found");
+    }
     if (restaurants.findPublicVisibleById(restaurantId).isPresent()) return user;
     throw new NotFoundException("Restaurant not found");
   }
 
   private CategoryResponse category(MenuCategory c) {
     return new CategoryResponse(
-        c.getId(), c.getRestaurantId(), c.getName(), c.getSortOrder(), c.getItemCount());
+        c.getId(),
+        c.getRestaurantId(),
+        c.getName(),
+        c.getSortOrder(),
+        c.getItemCount(),
+        c.isActive());
   }
 
   private MenuItemResponse item(MenuItem i) {
@@ -219,6 +255,14 @@ public class MenuService {
         i.getSortOrder(),
         i.isAvailable(),
         i.getAvailableQuantity());
+  }
+
+  private void saveCategory(MenuCategory category) {
+    try {
+      categories.saveAndFlush(category);
+    } catch (org.springframework.dao.DataIntegrityViolationException exception) {
+      throw new DomainException("Menu category name already exists");
+    }
   }
 
   private String trim(String value) {

@@ -12,7 +12,7 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, UUID> {
   Optional<MenuItem> findLockedById(UUID id);
 
   @Query(
-      "select i from MenuItem i where i.restaurantId=:restaurantId and (:categoryId is null or i.categoryId=:categoryId) and (:dietType is null or i.dietType=:dietType) and (:minPrice is null or i.price>=:minPrice) and (:maxPrice is null or i.price<=:maxPrice) and (cast(:name as string) is null or lower(i.name) like lower(concat('%',:name,'%'))) and (:includeUnavailable=true or i.available=true) order by lower(i.name),i.id")
+      "select i from MenuItem i where i.restaurantId=:restaurantId and (:categoryId is null or i.categoryId=:categoryId) and (:dietType is null or i.dietType=:dietType) and (:minPrice is null or i.price>=:minPrice) and (:maxPrice is null or i.price<=:maxPrice) and (cast(:name as string) is null or lower(i.name) like lower(concat('%',:name,'%'))) and (:includeUnavailable=true or i.available=true) and (:available is null or i.available=:available)")
   Page<MenuItem> search(
       UUID restaurantId,
       UUID categoryId,
@@ -21,7 +21,8 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, UUID> {
       java.math.BigDecimal maxPrice,
       String name,
       boolean includeUnavailable,
+      Boolean available,
       Pageable pageable);
 
-  boolean existsByCategoryId(UUID categoryId);
+  boolean existsByCategoryIdAndAvailableTrue(UUID categoryId);
 }

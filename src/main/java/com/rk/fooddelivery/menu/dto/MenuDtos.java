@@ -14,7 +14,7 @@ public final class MenuDtos {
       @Size(max = 160) @Pattern(regexp = ".*\\S.*") String name, @Min(0) Integer sortOrder) {}
 
   public record CategoryResponse(
-      UUID id, UUID restaurantId, String name, int sortOrder, int itemCount) {}
+      UUID id, UUID restaurantId, String name, int sortOrder, int itemCount, boolean active) {}
 
   public record ItemRequest(
       @NotNull UUID categoryId,
@@ -59,6 +59,8 @@ public final class MenuDtos {
       BigDecimal minPrice,
       BigDecimal maxPrice,
       String name,
+      Boolean available,
+      String sort,
       int page,
       int size) {}
 }

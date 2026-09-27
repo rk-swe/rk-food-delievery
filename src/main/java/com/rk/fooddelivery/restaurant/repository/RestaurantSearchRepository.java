@@ -6,5 +6,6 @@ import java.util.*;
 import org.springframework.data.domain.*;
 
 public interface RestaurantSearchRepository {
-  Page<Restaurant> searchPublic(RestaurantSearchRequest request);
+  Page<Restaurant> search(
+      RestaurantSearchRequest request, com.rk.fooddelivery.auth.AuthenticatedUser actor);
 }

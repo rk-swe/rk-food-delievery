@@ -55,7 +55,10 @@ class RestaurantSearchIntegrationTest extends IntegrationTestSupport {
   void customerLocationIsUsedWhenRadiusIsSuppliedWithoutCoordinates() throws Exception {
     jdbc.update(
         "UPDATE users SET location=ST_SetSRID(ST_MakePoint(72.8777,19.0760),4326)::geography WHERE email='customer@example.test'");
-    mvc.perform(get("/api/restaurants").with(bearer("customer", "secret")).param("radiusMeters", "1000"))
+    mvc.perform(
+            get("/api/restaurants")
+                .with(bearer("customer", "secret"))
+                .param("radiusMeters", "1000"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements").value(1));
   }

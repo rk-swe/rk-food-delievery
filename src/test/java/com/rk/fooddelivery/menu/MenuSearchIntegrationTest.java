@@ -59,6 +59,53 @@ class MenuSearchIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.content[0].name").value("Veg Thali"));
   }
 
+  @Test
+  void menuSortingAvailabilityCategoryAndPriceFiltersAreValidated() throws Exception {
+    UUID category =
+        jdbc.queryForObject(
+            "select id from menu_categories where restaurant_id=?", UUID.class, restaurant);
+    jdbc.update(
+        "update menu_items set average_rating=case when name='Veg Thali' then 5 else 2 end, sort_order=case when name='Veg Thali' then 0 else 1 end");
+    for (String sort : new String[] {"price,asc", "rating", "displayOrder"})
+      mvc.perform(
+              get("/api/restaurants/{id}/menu-items", restaurant)
+                  .with(bearer("owner", "secret"))
+                  .param("sort", sort))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.content[0].name").value("Veg Thali"));
+    mvc.perform(
+            get("/api/restaurants/{id}/menu-items", restaurant)
+                .with(bearer("owner", "secret"))
+                .param("available", "true")
+                .param("categoryId", category.toString())
+                .param("minPrice", "100")
+                .param("maxPrice", "200"))
+        .andExpect(jsonPath("$.totalElements").value(1));
+    mvc.perform(
+            get("/api/restaurants/{id}/menu-items", restaurant)
+                .with(bearer("owner", "secret"))
+                .param("available", "false"))
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.content[0].name").value("Hidden Chicken"));
+    mvc.perform(
+            get("/api/restaurants/{id}/menu-items", restaurant)
+                .with(bearer("customer", "secret"))
+                .param("available", "false"))
+        .andExpect(jsonPath("$.totalElements").value(0));
+    for (String invalid : new String[] {"name;delete", "distance", "price,sideways"})
+      mvc.perform(
+              get("/api/restaurants/{id}/menu-items", restaurant)
+                  .with(bearer("owner", "secret"))
+                  .param("sort", invalid))
+          .andExpect(status().isBadRequest());
+    mvc.perform(
+            get("/api/restaurants/{id}/menu-items", restaurant)
+                .with(bearer("owner", "secret"))
+                .param("minPrice", "300")
+                .param("maxPrice", "100"))
+        .andExpect(status().isBadRequest());
+  }
+
   private UUID user(String name, String email, String phone, String role, String username) {
     UUID id =
         jdbc.queryForObject(

@@ -81,3 +81,32 @@ Validation failures return HTTP 400 with `VALIDATION_FAILED`, a stable message,
 `requestId`, and `fieldErrors`. Domain conflicts return HTTP 409 with
 `CONFLICT` and `requestId`; responses do not expose database or SQL exception
 details.
+
+## Catalog discovery and menu management
+
+`GET /api/restaurants` supports `name`, `cityId`, repeated/comma-separated
+`cuisineIds` (match any), `dietType`, `minCostForTwo`, `maxCostForTwo`, and
+`radiusMeters`. The existing `cuisine` name-substring filter is also supported.
+`sort` accepts `name` (default), `rating` (descending by default), `cost,asc`,
+`cost,desc`, or `distance` (ascending). Name/rating accept explicit `asc` or
+`desc`. Every ordering ends with the restaurant UUID to stabilize pagination.
+Distance/radius require both `latitude` and `longitude`, or the authenticated
+customer's stored location. Coordinates are decimal degrees and radius is meters.
+Admins can inspect inactive restaurants; owners see only their own restaurants,
+including inactive ones; customers and partners see active restaurants in active
+cities. Result and count queries enforce the same visibility.
+
+`GET /api/restaurants/{id}/menu-items` supports `name`, `categoryId`, `dietType`,
+`minPrice`, `maxPrice`, and `available`. `sort` accepts `price`, `rating`, or
+`displayOrder` (default), optionally followed by `,asc` or `,desc`; rating defaults
+to descending. UUIDs break ties. Public callers cannot expose unavailable items
+using `available=false`; owners and admins may inspect them. Collection endpoints
+accept `page` (default 0) and `size` (default 20, maximum 100).
+
+Owners create/patch categories and items under their restaurant and adjust stock
+with `POST /api/menu-items/{id}/stock-adjustments` using a nonzero integer `delta`.
+Item DELETE deactivates the item. Category DELETE requires no active items and
+soft-deactivates the category, preserving historical item references. Inactive
+categories are hidden from public listings and reject new items and item
+reactivation. Category counts track available items and update transactionally
+when an item moves or changes availability. Duplicate category names return 409.

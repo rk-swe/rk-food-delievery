@@ -83,15 +83,20 @@ public class MenuController {
   public PageResponse<MenuItemResponse> search(
       @PathVariable UUID restaurantId,
       @RequestParam(required = false) UUID categoryId,
-      @RequestParam(required = false) String dietType,
-      @RequestParam(required = false) java.math.BigDecimal minPrice,
-      @RequestParam(required = false) java.math.BigDecimal maxPrice,
+      @RequestParam(required = false) @Pattern(regexp = "Veg|Non Veg") String dietType,
+      @RequestParam(required = false) @DecimalMin("0.0") java.math.BigDecimal minPrice,
+      @RequestParam(required = false) @DecimalMin("0.0") java.math.BigDecimal maxPrice,
       @RequestParam(required = false) String name,
+      @RequestParam(required = false) Boolean available,
+      @RequestParam(defaultValue = "displayOrder")
+          @Pattern(regexp = "price(,asc|,desc)?|rating(,asc|,desc)?|displayOrder(,asc|,desc)?")
+          String sort,
       @RequestParam(defaultValue = "0") @Min(0) int page,
       @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
     return service.search(
         restaurantId,
-        new MenuSearchRequest(categoryId, dietType, minPrice, maxPrice, name, page, size));
+        new MenuSearchRequest(
+            categoryId, dietType, minPrice, maxPrice, name, available, sort, page, size));
   }
 
   @PatchMapping("/api/menu-items/{id}")

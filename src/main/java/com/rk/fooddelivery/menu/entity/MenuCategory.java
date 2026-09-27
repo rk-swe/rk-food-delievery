@@ -17,6 +17,9 @@ public class MenuCategory {
   @Column(name = "sort_order", nullable = false)
   private int sortOrder;
 
+  @Column(nullable = false)
+  private boolean active = true;
+
   @Column(name = "item_count", nullable = false)
   private int itemCount;
 
@@ -51,6 +54,15 @@ public class MenuCategory {
 
   public int getSortOrder() {
     return sortOrder;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void deactivate(UUID actor) {
+    active = false;
+    updatedBy = actor;
   }
 
   public int getItemCount() {

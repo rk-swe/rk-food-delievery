@@ -40,12 +40,20 @@ public class RestaurantController {
   @Operation(
       operationId = "listRestaurants",
       summary = "Search restaurants",
-      description = "Public catalog visibility and filters apply.")
+      description =
+          "Admins see all restaurants; owners see their own; customers and partners see active restaurants in active cities. Sort: name, rating, cost, distance with optional asc/desc direction; distance requires coordinates or stored customer location.")
   public PageResponse<RestaurantResponse> list(
       @RequestParam(required = false) String name,
       @RequestParam(required = false) String cuisine,
-      @RequestParam(required = false) String dietType,
-      @RequestParam(required = false) java.math.BigDecimal maxCostForTwo,
+      @RequestParam(required = false) @Pattern(regexp = "Veg|Non Veg") String dietType,
+      @RequestParam(required = false) UUID cityId,
+      @RequestParam(required = false) java.util.List<UUID> cuisineIds,
+      @RequestParam(required = false) @DecimalMin("0.0") java.math.BigDecimal minCostForTwo,
+      @RequestParam(defaultValue = "name")
+          @Pattern(
+              regexp = "name(,asc|,desc)?|rating(,asc|,desc)?|cost(,asc|,desc)?|distance(,asc)?")
+          String sort,
+      @RequestParam(required = false) @DecimalMin("0.0") java.math.BigDecimal maxCostForTwo,
       @RequestParam(required = false) @DecimalMin("-90.0") @DecimalMax("90.0") Double latitude,
       @RequestParam(required = false) @DecimalMin("-180.0") @DecimalMax("180.0") Double longitude,
       @RequestParam(required = false) @DecimalMin("0.0") Double radiusMeters,
@@ -53,7 +61,19 @@ public class RestaurantController {
       @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
     return searchService.search(
         new RestaurantSearchRequest(
-            name, cuisine, dietType, maxCostForTwo, latitude, longitude, radiusMeters, page, size));
+            name,
+            cuisine,
+            dietType,
+            cityId,
+            cuisineIds,
+            minCostForTwo,
+            maxCostForTwo,
+            sort,
+            latitude,
+            longitude,
+            radiusMeters,
+            page,
+            size));
   }
 
   @GetMapping("/{id}")

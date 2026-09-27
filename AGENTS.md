@@ -6,8 +6,10 @@ The user requested resource-oriented REST APIs and Hibernate wherever practical.
 Read `docs/superpowers/specs/2026-09-28-rest-jpa-design.md` before further feature
 work. It records the proposed route/authorization matrix, JPA/native-query
 boundaries and verification requirements. The Astra-authored implementation plan
-is `docs/superpowers/plans/2026-09-28-rest-jpa-refactor.md`, tasks 3.1–3.5.
-The design and plan are pending user review; do not represent them as implemented
+is `docs/superpowers/plans/2026-09-28-rest-jpa-refactor.md`, tasks 3.1–3.6.
+The revision includes POST `/api/auth/tokens`, 30-minute JWTs and Swagger bearer
+authorization with JWT-only protected APIs, replacing Basic authentication (task 3.6).
+The updated design and plan are pending user review; do not represent them as implemented
 or continue task 4 under the old conventions. After review, implement these
 prerequisite tasks first and record their evidence in the existing ledger.
 

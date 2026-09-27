@@ -7,8 +7,10 @@ The user requested resource-based REST APIs and Hibernate persistence. The
 the proposed URL mappings, authorization, Swagger grouping and JPA/native SQL
 boundaries. Astra prepared the
 [implementation plan](docs/superpowers/plans/2026-09-28-rest-jpa-refactor.md),
-with tasks 3.1–3.5 preceding original task 4. Plan review and implementation are pending: the current
-application still exposes the existing admin-prefixed routes and uses JDBC.
+with tasks 3.1–3.6 preceding original task 4. Plan review and implementation are pending: the current
+application still exposes the existing admin-prefixed routes and uses JDBC and
+HTTP Basic. Task 3.6 plans JWT token issuance and Swagger bearer authorization
+that replaces Basic authentication; JWT is not implemented yet.
 Follow [AGENTS.md](AGENTS.md) and the updated assignment plan before continuing
 feature development. This notice does not claim the proposed endpoints exist.
 

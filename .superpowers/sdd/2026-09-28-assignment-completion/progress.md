@@ -34,3 +34,13 @@ Task 3: final verification after the repository-boundary cleanup: `JAVA_HOME=/op
 
 Task 3 follow-up (2026-09-28): replaced `lockPartner`'s `ResultSet::next` with an explicitly null-guarded, value-returning lambda and wrapped the nullable query result in `Boolean.TRUE.equals`. This addresses the user-reported IDE null-safety diagnostic while retaining the row-lock query. No new behavior test was added for this localized static-nullability correction; existing real PostgreSQL integration coverage was used. The IDE diagnostic itself was not independently rerun by Maven.
 Task 3 follow-up verification: with `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home`, `TEST_DB_URL=jdbc:postgresql://localhost:5432/fooddelivery_assignment_test`, `RABBITMQ_HOST=localhost`, and `RABBITMQ_VHOST=fooddelivery_assignment_test`, `./mvnw -Dtest=AdminCrudIntegrationTest,SecurityIntegrationTest test` passed 11 tests and `./mvnw test` passed 39 tests, both with zero failures/errors/skips. Existing JVM/Mockito agent and SpringDoc startup warnings remain.
+
+## JWT/Swagger planning amendment — 2026-09-28
+
+User requested the login-token-paste-Authorize flow and an updated plan. Added
+prerequisite task 3.6: POST `/api/auth/tokens`, 30-minute signed JWTs, current
+account/role checks and Swagger bearer authorization. The user clarified JWT
+only: task 3.6 removes Basic authentication and migrates existing API clients/tests.
+Updated the revision spec, plan references and guidance; implementation and
+plan review remain pending. Existing task completion/test evidence is unchanged.
+This is documentation only; no JWT implementation or runtime verification claimed.

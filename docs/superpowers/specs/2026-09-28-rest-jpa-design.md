@@ -12,9 +12,8 @@ existing ledger. Once approved, this document supersedes conflicting route and
 persistence guidance in the original assignment design, plan and preflight
 rulings; their business invariants remain mandatory.
 
-The change includes resource-based controllers and Swagger tags, usable Swagger
-Basic authorization, JPA persistence for ordinary CRUD and credential lookup,
-updated role/ownership tests, and documentation. It does not add JWT, registration,
+The change includes resource-based controllers and Swagger tags, JWT-only authentication with Swagger bearer authorization, JPA persistence for ordinary CRUD and credential lookup,
+updated role/ownership tests, and documentation. The user requested JWT/Swagger support on 2026-09-28; this amendment adds that scope. It does not add registration, refresh tokens, logout/revocation storage,
 demo seeding, or the remaining assignment features.
 
 ## API design
@@ -47,15 +46,60 @@ Preserve active-city and busy-partner deactivation checks and historical rows.
 
 Split the combined admin controller into feature controllers. Services enforce
 roles and ownership so removing `/api/admin/**` cannot silently remove admin
-protection. All `/api/**` routes still require authentication. Keep HTTP Basic,
-BCrypt, inactive-account denial and stateless session behavior.
+protection. All `/api/**` routes require authentication except POST `/api/auth/tokens`.
+Replace HTTP Basic with JWT bearer authentication. Preserve BCrypt for credential
+verification, inactive-account denial and stateless session behavior.
 
-Swagger tags: Account, Cities, Cuisines, Restaurants, Delivery Partners. Give
-each operation a readable summary and permission description. Declare HTTP Basic
-as an OpenAPI security scheme and attach the security requirement to protected
-operations. Keep Swagger and OpenAPI documents accessible without credentials.
+Swagger tags: Authentication, Account, Cities, Cuisines, Restaurants, Delivery Partners. Give
+each operation a readable summary and permission description. Declare only `bearerAuth` (HTTP bearer, bearerFormat JWT) as the security
+requirement on protected operations; do not expose a Basic authorization scheme.
+The token operation uses the Authentication tag and explicit `security: []`. Keep Swagger and OpenAPI documents accessible without credentials.
 Use deterministic tag/operation ordering and verify there are no controller-name
 fallback tags or duplicate operation IDs.
+
+## JWT issuance and Swagger flow
+
+POST `/api/auth/tokens` accepts JSON `{"username":"…","password":"…"}` without
+an existing token. Authenticate against the existing database credentials using
+BCrypt and case-insensitive username lookup. Return HTTP 200 with
+`{"accessToken":"<JWT>","tokenType":"Bearer","expiresIn":1800}` and
+`Cache-Control: no-store`; transient issuance has no Location header. Malformed
+or missing input returns the existing validation 400 envelope; unknown user,
+wrong password or inactive account returns the same generic 401 envelope.
+Never log passwords, hashes, signing secrets or complete tokens. Return the access
+token only in the issuance response; never expose passwords, hashes or secrets.
+
+Issue HS256 tokens with UUID user ID in `sub`, issuer `fooddelivery`, audience
+`fooddelivery-api`, and required `iat` and `exp`; expiry is exactly 30 minutes
+from issuance using the injected Clock. Configure a base64-encoded `JWT_SECRET`
+with at least 32 random decoded bytes; fail startup on missing, invalid or short
+configuration after JWT is enabled. No default production secret or randomly
+regenerated startup key. Tests explicitly supply a test-only key. Use supported
+Spring Security JWT encoding/decoding, with the Boot-managed dependency/API
+verified during implementation, rather than custom cryptography.
+
+Bearer validation pins HS256 and checks signature, issuer, audience, required
+claims, UUID subject and expiry (zero clock skew for the specified expiry).
+Reject a future `iat` or expiry not after issuance. Resolve the current user by
+UUID through the JPA user repository on each bearer request; reject missing or
+inactive users and use current database roles in the existing AuthenticatedUser
+principal. Token claims do not grant roles and contain no password or unnecessary
+personal data. Keep current role/ownership behavior and generic 401/403 errors.
+A malformed/invalid bearer token must not fall back to another authentication
+mechanism. Disable HTTP Basic; Basic-only requests to protected APIs return 401.
+Username/password authentication is accepted only through the token request body.
+
+In Swagger, execute the token endpoint, copy `accessToken`, click Authorize and
+paste the raw token into `bearerAuth`; Swagger sends `Authorization: Bearer …`.
+Do not describe this as OAuth password flow or automatic token generation by
+Swagger. Leave persistent browser token storage disabled. After expiry, log in
+again. There is no token refresh
+or individual-token revocation in this scope; account deactivation is checked
+on subsequent requests, and signing-secret rotation invalidates existing tokens.
+
+Task 3.5 establishes resource OpenAPI metadata. Task 3.6 replaces the existing
+Basic runtime with JWT, adds the final Swagger contract and usage documentation before original
+task 4. Existing route/persistence prerequisites retain their order.
 
 ## Hibernate design
 
@@ -126,7 +170,12 @@ would obscure the atomic SQL required by the assignment.
 
 Implementation must first add failing tests for the new route/role matrix,
 removed routes, Swagger security and tags, pagination visibility and JPA behavior.
-Retain existing schema, Basic-auth, ownership, soft-delete and conflict tests.
+Retain existing schema, credential-validation, ownership, soft-delete and conflict
+assertions. In task 3.6 migrate Basic-based integration fixtures to issued bearer
+tokens and add explicit rejection tests for Basic-only protected requests.
+Add token issuance/validation/configuration tests, post-issuance account deactivation
+and role-change tests, bearer role/ownership coverage and OpenAPI bearer-only security
+with an unauthenticated token operation.
 Add meaningful regression coverage for credential atomicity, timestamp/audit
 mapping, hours upsert, location coordinates and transaction rollback. Exercise
 the city-create/deactivate and partner-busy checks with real database locks.

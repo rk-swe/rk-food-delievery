@@ -9,7 +9,7 @@ The user requested resource-based routes and Swagger organization, Hibernate for
 ordinary persistence, and consistent guidance for future agents. The current
 code still uses the old routes and JDBC persistence. Do not continue task 4
 until the revision design and [prerequisite plan](2026-09-28-rest-jpa-refactor.md)
-have been reviewed and tasks 3.1–3.5 completed. Preserve existing task numbers, commits,
+have been reviewed and tasks 3.1–3.6 completed. Preserve existing task numbers, commits,
 verification evidence and the ledger; do not mark tasks 1–3 unimplemented.
 
 The linked proposal defines replacement routes and permission scopes for current
@@ -137,7 +137,7 @@ Produces city/restaurant/partner create/list/get/patch/deactivate APIs and
 - [ ] Run `./mvnw -Dtest=AdminCrudIntegrationTest,SecurityIntegrationTest test`; expected zero failures.
 - [ ] Commit `feat: manage cities restaurants and delivery partners`.
 
-### 3.1–3.5. Resource REST and Hibernate prerequisites
+### 3.1–3.6. Resource REST and Hibernate prerequisites
 
 Read and execute [the REST/JPA refactor plan](2026-09-28-rest-jpa-refactor.md)
 after user review. Its tasks are independently verified commits:
@@ -146,7 +146,8 @@ after user review. Its tasks are independently verified commits:
 - 3.2: City/cuisine resource services and visibility.
 - 3.3: Restaurant resources, ownership and transactional hours.
 - 3.4: Partner CRUD/presence and removal of shared admin persistence.
-- 3.5: OpenAPI Basic authentication, full resource contract and guidance.
+- 3.5: OpenAPI resource metadata, full resource contract and guidance.
+- 3.6: JWT token issuance, Swagger bearer authorization, removal of Basic authentication and authentication regression coverage.
 
 Record these in the existing ledger without renumbering tasks 1–13. The original
 completed task 3 is historical; its caller-ID presence signature is superseded

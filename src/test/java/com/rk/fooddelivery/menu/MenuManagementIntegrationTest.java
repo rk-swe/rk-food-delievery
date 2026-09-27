@@ -1,7 +1,6 @@
 package com.rk.fooddelivery.menu;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -62,7 +61,9 @@ class MenuManagementIntegrationTest extends IntegrationTestSupport {
                         + "\",\"name\":\"Aloo Paratha\",\"dietType\":\"Veg\",\"price\":120.00,\"availableQuantity\":4}"))
         .andExpect(status().isCreated());
 
-    mvc.perform(get("/api/restaurants/{id}/menu-categories", restaurant).with(bearer("owner", "secret")))
+    mvc.perform(
+            get("/api/restaurants/{id}/menu-categories", restaurant)
+                .with(bearer("owner", "secret")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content[0].itemCount").value(1));
 
@@ -112,7 +113,8 @@ class MenuManagementIntegrationTest extends IntegrationTestSupport {
         .andExpect(jsonPath("$.availableQuantity").value(5));
   }
 
-  private UUID restaurant(String name, UUID ownerId, UUID cityId, double latitude, double longitude) {
+  private UUID restaurant(
+      String name, UUID ownerId, UUID cityId, double latitude, double longitude) {
     return jdbc.queryForObject(
         "INSERT INTO restaurants (name,owner_id,city_id,cost_for_two,diet_type,address_line_1,location) VALUES (?,?,?,?,?,'Road',ST_SetSRID(ST_MakePoint(?,?),4326)::geography) RETURNING id",
         UUID.class,

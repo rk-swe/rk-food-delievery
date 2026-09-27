@@ -72,3 +72,19 @@ each task's focused/full tests. Retained every required assertion, existing mode
 choices and shared test DB/vhost restrictions. Removed stale review-pending
 language from the refactor plan. Documentation only; no runtime verification
 or additional task completion is claimed.
+
+## REST/JPA prerequisite completion — 2026-09-28
+
+Tasks 3.1–3.6 are implemented on `main`. Task 3.1 (Hibernate user and
+credential persistence) is `e3ff9b4`; task 3.2 (city and cuisine resources)
+is `2515586`; task 3.3 (restaurant resources and hours) is `976ef52`; task
+3.4 (delivery partners and self presence) is `2e48160`; task 3.5 (resource
+OpenAPI metadata and legacy route retirement) is `3c92435` and `3b3fc5c`; and
+task 3.6 (JWT bearer authentication) is `4dc2a8c` and `49adda0`.
+
+Focused verification after integration used the dedicated PostgreSQL/PostGIS
+database and RabbitMQ test vhost:
+`JwtAuthenticationIntegrationTest,JwtConfigurationTest,RestaurantResourceIntegrationTest,DeliveryPartnerResourceIntegrationTest,PartnerPresenceIntegrationTest`
+ran 11 tests with 0 failures and 0 errors. The user directed that obsolete
+Basic-auth and legacy-route tests be removed and that the historical full suite
+not be run for this completion.

@@ -9,9 +9,11 @@ boundaries and verification requirements. The Astra-authored implementation plan
 is `docs/superpowers/plans/2026-09-28-rest-jpa-refactor.md`, tasks 3.1–3.6.
 The revision includes POST `/api/auth/tokens`, 30-minute JWTs and Swagger bearer
 authorization with JWT-only protected APIs, replacing Basic authentication (task 3.6).
-The updated design and plan are pending user review; do not represent them as implemented
-or continue task 4 under the old conventions. After review, implement these
-prerequisite tasks first and record their evidence in the existing ledger.
+The user has authorized this revision. Implement prerequisite tasks 3.1–3.6
+immediately, in order, and record their evidence in the existing ledger. Do not
+continue task 4 under the old conventions. Once task 3.6 is complete and
+verified, continue the remaining assignment tasks through task 13 without
+waiting for a further review checkpoint.
 
 For this revision the user selected `gpt-6-astra` for planning and
 `gpt-5.6-terra` for implementation, requesting normal and fast mode respectively.

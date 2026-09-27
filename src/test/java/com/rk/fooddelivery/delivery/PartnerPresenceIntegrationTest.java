@@ -1,7 +1,6 @@
 package com.rk.fooddelivery.delivery;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -25,8 +24,10 @@ class PartnerPresenceIntegrationTest extends IntegrationTestSupport {
 
   @BeforeEach
   void fixtures() {
-    partner = user("Partner", "partner@example.test", "+919000000002", "delivery_partner", "partner");
-    otherPartner = user("Other", "other@example.test", "+919000000003", "delivery_partner", "other");
+    partner =
+        user("Partner", "partner@example.test", "+919000000002", "delivery_partner", "partner");
+    otherPartner =
+        user("Other", "other@example.test", "+919000000003", "delivery_partner", "other");
     user("Owner", "owner@example.test", "+919000000004", "restaurant_owner", "owner");
   }
 
@@ -34,31 +35,40 @@ class PartnerPresenceIntegrationTest extends IntegrationTestSupport {
   void presenceUsesPrincipalAndServerTimestamp() throws Exception {
     mvc.perform(
             patch("/api/me/delivery-partner/location")
-                .with(httpBasic("partner", "secret"))
+                .with(bearer("partner", "secret"))
                 .contentType("application/json")
                 .content("{\"latitude\":12.9716,\"longitude\":77.5946}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(partner.toString()))
         .andExpect(jsonPath("$.locationUpdatedAt").exists());
 
-    assertThat(jdbc.queryForObject("SELECT ST_X(location::geometry) FROM users WHERE id=?", Double.class, partner))
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT ST_X(location::geometry) FROM users WHERE id=?", Double.class, partner))
         .isEqualTo(77.5946);
-    assertThat(jdbc.queryForObject("SELECT ST_Y(location::geometry) FROM users WHERE id=?", Double.class, partner))
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT ST_Y(location::geometry) FROM users WHERE id=?", Double.class, partner))
         .isEqualTo(12.9716);
-    Instant persisted = jdbc.queryForObject("SELECT location_updated_at FROM users WHERE id=?", Instant.class, partner);
+    Instant persisted =
+        jdbc.queryForObject(
+            "SELECT location_updated_at FROM users WHERE id=?", Instant.class, partner);
     assertThat(persisted).isNotNull();
-    assertThat(jdbc.queryForObject("SELECT location FROM users WHERE id=?", Object.class, otherPartner)).isNull();
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT location FROM users WHERE id=?", Object.class, otherPartner))
+        .isNull();
 
     mvc.perform(
             patch("/api/me/delivery-partner/availability")
-                .with(httpBasic("partner", "secret"))
+                .with(bearer("partner", "secret"))
                 .contentType("application/json")
                 .content("{\"online\":true}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.online").value(true));
     mvc.perform(
             patch("/api/me/delivery-partner/availability")
-                .with(httpBasic("owner", "secret"))
+                .with(bearer("owner", "secret"))
                 .contentType("application/json")
                 .content("{\"online\":true}"))
         .andExpect(status().isForbidden());

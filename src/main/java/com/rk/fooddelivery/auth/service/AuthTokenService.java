@@ -35,7 +35,7 @@ public class AuthTokenService {
     Authentication authentication =
         authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken.unauthenticated(
-                request.username(), request.password()));
+                request.email(), request.password()));
     AuthenticatedUser user = (AuthenticatedUser) authentication.getPrincipal();
     Instant issuedAt = Instant.now(clock);
     Instant expiresAt = issuedAt.plus(JwtConfig.LIFETIME);

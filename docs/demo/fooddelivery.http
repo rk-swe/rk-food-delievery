@@ -1,10 +1,49 @@
 @host = http://localhost:8080
+@password = DemoPass!2026
+@restaurant = 00000000-0000-0000-0000-000000000301
+@item = 00000000-0000-0000-0000-000000000401
 
-### Obtain a JWT
+### Customer token (copy accessToken into the variables below)
 POST {{host}}/api/auth/tokens
 Content-Type: application/json
 
-{"username":"customer1@demo.local","password":"change-me"}
+{"email":"customer1@demo.local","password":"{{password}}"}
 
-### Get catalog
+### Owner token
+POST {{host}}/api/auth/tokens
+Content-Type: application/json
+
+{"email":"owner1@demo.local","password":"{{password}}"}
+
+### Delivery-partner token
+POST {{host}}/api/auth/tokens
+Content-Type: application/json
+
+{"email":"partner1@demo.local","password":"{{password}}"}
+
+### Browse the seeded restaurant catalog
 GET {{host}}/api/restaurants
+Authorization: Bearer {{customerToken}}
+
+### Browse the seeded menu
+GET {{host}}/api/restaurants/{{restaurant}}/menu
+Authorization: Bearer {{customerToken}}
+
+### Add stock-backed demo item to the cart
+PUT {{host}}/api/cart/items/{{item}}
+Authorization: Bearer {{customerToken}}
+Content-Type: application/json
+
+{"quantity":2}
+
+### Inspect cart and take its version for checkout
+GET {{host}}/api/cart
+Authorization: Bearer {{customerToken}}
+
+### Place an order. Replace cartVersion with the GET /api/cart version.
+POST {{host}}/api/orders
+Authorization: Bearer {{customerToken}}
+Idempotency-Key: demo-checkout-001
+Content-Type: application/json
+
+{"paymentMethod":"UPI","addressLine1":"42 Demo Lane","city":"Pune","state":"Maharashtra","country":"India","cartVersion":1}

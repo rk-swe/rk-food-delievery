@@ -58,6 +58,9 @@ public class User implements Persistable<UUID> {
   @Column(name = "updated_at", insertable = false, updatable = false)
   private Instant updatedAt;
 
+  @Column(name = "cart_version", nullable = false)
+  private long cartVersion;
+
   @Transient private boolean newEntity = true;
 
   protected User() {}
@@ -168,5 +171,13 @@ public class User implements Persistable<UUID> {
 
   public Instant getUpdatedAt() {
     return updatedAt;
+  }
+
+  public long getCartVersion() {
+    return cartVersion;
+  }
+
+  public void incrementCartVersion() {
+    cartVersion++;
   }
 }

@@ -229,10 +229,13 @@ public class AdminRepository {
   }
 
   public boolean lockPartner(UUID id) {
-    return jdbc.query(
-        "SELECT id FROM users WHERE id=? AND role='delivery_partner' FOR UPDATE",
-        ResultSet::next,
-        id);
+    return Boolean.TRUE.equals(
+        jdbc.query(
+            "SELECT id FROM users WHERE id=? AND role='delivery_partner' FOR UPDATE",
+            rs -> {
+              return rs != null && rs.next();
+            },
+            id));
   }
 
   public boolean hasActiveDelivery(UUID partnerId) {

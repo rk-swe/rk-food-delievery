@@ -5,7 +5,6 @@ import com.rk.fooddelivery.city.dto.CityDtos.*;
 import com.rk.fooddelivery.common.error.*;
 import com.rk.fooddelivery.common.web.PageResponse;
 import com.rk.fooddelivery.delivery.dto.PartnerDtos.*;
-import com.rk.fooddelivery.restaurant.dto.RestaurantDtos.*;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -70,52 +69,6 @@ public class AdminCrudService {
         repository.cityCount(publicOnly));
   }
 
-  @Transactional
-  public RestaurantResponse createRestaurant(UUID actor, RestaurantRequest request) {
-    verifyOwner(request.ownerId());
-    requireActiveCity(request.cityId());
-    return restaurant(repository.insertRestaurant(actor, request));
-  }
-
-  @Transactional
-  public RestaurantResponse patchRestaurant(UUID actor, UUID id, RestaurantPatch request) {
-    restaurant(id);
-    if ((request.latitude() == null) != (request.longitude() == null)) {
-      throw new DomainException("Latitude and longitude must be updated together");
-    }
-    repository.updateRestaurant(actor, id, request);
-    return restaurant(id);
-  }
-
-  @Transactional
-  public void deactivateRestaurant(UUID actor, UUID id) {
-    restaurant(id);
-    repository.deactivateRestaurant(actor, id);
-  }
-
-  @Transactional
-  public RestaurantResponse updateRestaurantHours(
-      UUID ownerId, UUID restaurantId, List<HoursRequest> hours) {
-    if (!repository.isRestaurantOwnedBy(restaurantId, ownerId)) {
-      throw new NotFoundException("Restaurant not found");
-    }
-    repository.upsertRestaurantHours(restaurantId, ownerId, hours);
-    return restaurant(restaurantId);
-  }
-
-  public RestaurantResponse restaurant(UUID id) {
-    return repository
-        .restaurant(id)
-        .orElseThrow(() -> new NotFoundException("Restaurant not found"));
-  }
-
-  public PageResponse<RestaurantResponse> restaurants(UUID ownerId, int page, int size) {
-    return PageResponse.of(
-        repository.restaurants(ownerId, size, page * size),
-        page,
-        size,
-        repository.restaurantCount(ownerId));
-  }
 
   @Transactional
   public PartnerResponse createPartner(UUID actor, PartnerRequest request) {
@@ -162,15 +115,4 @@ public class AdminCrudService {
         repository.partners(size, page * size), page, size, repository.partnerCount());
   }
 
-  private void verifyOwner(UUID id) {
-    if (!repository.isActiveRestaurantOwner(id)) {
-      throw new DomainException("Restaurant owner must be an active restaurant owner");
-    }
-  }
-
-  private void requireActiveCity(UUID id) {
-    if (!Boolean.TRUE.equals(repository.lockCity(id))) {
-      throw new DomainException("Restaurant city must be active");
-    }
-  }
 }

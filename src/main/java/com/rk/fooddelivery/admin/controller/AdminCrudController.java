@@ -4,7 +4,6 @@ import com.rk.fooddelivery.admin.service.AdminCrudService;
 import com.rk.fooddelivery.auth.*;
 import com.rk.fooddelivery.common.web.PageResponse;
 import com.rk.fooddelivery.delivery.dto.PartnerDtos.*;
-import com.rk.fooddelivery.restaurant.dto.RestaurantDtos.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -25,37 +24,6 @@ public class AdminCrudController {
 
   private UUID admin() {
     return current.requireRole(Role.ADMIN).id();
-  }
-
-  @PostMapping("/restaurants")
-  @ResponseStatus(HttpStatus.CREATED)
-  RestaurantResponse createRestaurant(@Valid @RequestBody RestaurantRequest r) {
-    return service.createRestaurant(admin(), r);
-  }
-
-  @GetMapping("/restaurants")
-  PageResponse<RestaurantResponse> restaurants(
-      @RequestParam(defaultValue = "0") @Min(0) int page,
-      @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-    admin();
-    return service.restaurants(null, page, size);
-  }
-
-  @GetMapping("/restaurants/{id}")
-  RestaurantResponse restaurant(@PathVariable UUID id) {
-    admin();
-    return service.restaurant(id);
-  }
-
-  @PatchMapping("/restaurants/{id}")
-  RestaurantResponse patchRestaurant(@PathVariable UUID id, @Valid @RequestBody RestaurantPatch r) {
-    return service.patchRestaurant(admin(), id, r);
-  }
-
-  @DeleteMapping("/restaurants/{id}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  void deactivateRestaurant(@PathVariable UUID id) {
-    service.deactivateRestaurant(admin(), id);
   }
 
   @PostMapping("/delivery-partners")

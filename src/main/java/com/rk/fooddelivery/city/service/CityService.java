@@ -7,6 +7,7 @@ import com.rk.fooddelivery.city.dto.CityDtos.CityRequest;
 import com.rk.fooddelivery.city.dto.CityDtos.CityResponse;
 import com.rk.fooddelivery.city.entity.City;
 import com.rk.fooddelivery.city.repository.CityRepository;
+import com.rk.fooddelivery.restaurant.repository.RestaurantRepository;
 import com.rk.fooddelivery.common.error.DomainException;
 import com.rk.fooddelivery.common.error.NotFoundException;
 import com.rk.fooddelivery.common.web.PageResponse;
@@ -21,10 +22,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class CityService {
   private final CityRepository cities;
   private final CurrentUser current;
+  private final RestaurantRepository restaurants;
 
-  public CityService(CityRepository cities, CurrentUser current) {
+  public CityService(CityRepository cities, CurrentUser current, RestaurantRepository restaurants) {
     this.cities = cities;
     this.current = current;
+    this.restaurants = restaurants;
   }
 
   @Transactional
@@ -93,7 +96,7 @@ public class CityService {
   }
 
   private boolean hasActiveRestaurants(UUID cityId) {
-    return cities.hasActiveRestaurants(cityId);
+    return restaurants.existsByCityIdAndActiveTrue(cityId);
   }
 
   private CityResponse response(City city) {

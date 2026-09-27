@@ -156,6 +156,97 @@ class SchemaMigrationTests {
         rejects("23514", "UPDATE orders SET delivery_partner_rating = 0 WHERE id = ?", order);
     }
 
+    @Test
+    void paymentReasonIsOptionalAndStored() {
+        UUID payment = id("""
+            INSERT INTO payments (order_id, payment_method, amount)
+            VALUES (?, 'UPI', 100) RETURNING id
+            """, order);
+        assertNull(db.queryForObject("SELECT status_reason FROM payments WHERE id = ?", String.class, payment));
+        db.update("UPDATE payments SET status = 'Failed', status_reason = 'Declined' WHERE id = ?", payment);
+        assertEquals("Declined", db.queryForObject("SELECT status_reason FROM payments WHERE id = ?", String.class, payment));
+    }
+
+    @Test
+    void customerCanOnlyHaveOneCart() {
+        cart();
+        rejects("23505", "INSERT INTO carts (customer_id, restaurant_id) VALUES (?, ?)", customer, restaurant);
+    }
+
+    @Test
+    void deletingCartRemovesItemsAndCreationHasDefaultTimestamp() {
+        UUID cart = cart();
+        cartItem(cart);
+        assertNotNull(db.queryForObject("SELECT created_at FROM carts WHERE id = ?", java.sql.Timestamp.class, cart));
+        db.update("DELETE FROM carts WHERE id = ?", cart);
+        assertEquals(0, db.queryForObject("SELECT count(*) FROM cart_items WHERE cart_id = ?", Integer.class, cart));
+    }
+
+    @Test
+    void cartCannotContainDuplicateMenuItems() {
+        UUID cart = cart();
+        cartItem(cart);
+        rejects("23505", "INSERT INTO cart_items (cart_id, restaurant_id, menu_item_id, quantity) VALUES (?, ?, ?, 1)",
+            cart, restaurant, item);
+    }
+
+    @Test
+    void cartQuantityMustBePositive() {
+        UUID cart = cart();
+        rejects("23514", "INSERT INTO cart_items (cart_id, restaurant_id, menu_item_id, quantity) VALUES (?, ?, ?, 0)",
+            cart, restaurant, item);
+    }
+
+    @Test
+    void cartItemMustMatchMenuRestaurant() {
+        UUID other = otherRestaurant();
+        UUID cart = id("INSERT INTO carts (customer_id, restaurant_id) VALUES (?, ?) RETURNING id", customer, other);
+        rejects("23503", "INSERT INTO cart_items (cart_id, restaurant_id, menu_item_id, quantity) VALUES (?, ?, ?, 1)",
+            cart, other, item);
+    }
+
+    @Test
+    void cartItemCannotLieAboutCartRestaurant() {
+        UUID other = otherRestaurant();
+        UUID cart = id("INSERT INTO carts (customer_id, restaurant_id) VALUES (?, ?) RETURNING id", customer, other);
+        rejects("23503", "INSERT INTO cart_items (cart_id, restaurant_id, menu_item_id, quantity) VALUES (?, ?, ?, 1)",
+            cart, restaurant, item);
+    }
+
+    @Test
+    void nonEmptyCartCannotSwitchRestaurants() {
+        UUID cart = cart();
+        cartItem(cart);
+        UUID other = otherRestaurant();
+        rejects("23503", "UPDATE carts SET restaurant_id = ? WHERE id = ?", other, cart);
+    }
+
+    @Test
+    void cartItemUpdatesRefreshTimestamp() {
+        UUID cart = cart();
+        UUID line = cartItem(cart);
+        db.update("UPDATE cart_items SET quantity = 2, updated_at = '2000-01-01' WHERE id = ?", line);
+        assertEquals(Boolean.TRUE, db.queryForObject(
+            "SELECT quantity = 2 AND updated_at > '2000-01-02'::timestamptz FROM cart_items WHERE id = ?", Boolean.class, line));
+    }
+
+    private UUID cart() {
+        return id("INSERT INTO carts (customer_id, restaurant_id) VALUES (?, ?) RETURNING id", customer, restaurant);
+    }
+
+    private UUID cartItem(UUID cart) {
+        return id("INSERT INTO cart_items (cart_id, restaurant_id, menu_item_id, quantity) VALUES (?, ?, ?, 1) RETURNING id",
+            cart, restaurant, item);
+    }
+
+    private UUID otherRestaurant() {
+        return id("""
+            INSERT INTO restaurants (name, owner_id, cost_for_two, diet_type, address_line_1, city_id, location)
+            SELECT 'Other Kitchen', owner_id, 200, 'Veg', address_line_1, city_id, location
+            FROM restaurants WHERE id = ? RETURNING id
+            """, restaurant);
+    }
+
     private UUID id(String sql, Object... args) {
         return db.queryForObject(sql, UUID.class, args);
     }

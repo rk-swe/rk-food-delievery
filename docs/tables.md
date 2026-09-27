@@ -197,6 +197,7 @@ payments
 	id: uuid4 # pk
 	order_id: uuid4 # fk
 	status: Pending | Success | Failed
+	status_reason: str | None
 	provider: Mock
 	payment_method: UPI, Card, Cash on delivery
 	provider_payment_id: str | None
@@ -205,6 +206,37 @@ payments
 	created_at: datetime # default
 	updated_at: datetime  # default, on_update
 ```
+
+```
+carts
+	id: uuid4 # pk
+	customer_id: uuid4 # fk, unique
+	restaurant_id: uuid4 # fk
+	# audit
+	created_at: datetime # default
+	# constraints
+	# unique(id, restaurant_id)
+
+cart_items
+	id: uuid4 # pk
+	cart_id: uuid4 # fk carts, on delete cascade
+	restaurant_id: uuid4 # matches both the cart and menu item's restaurant
+	menu_item_id: uuid4 # fk menu_items
+	quantity: int
+	# audit
+	created_at: datetime # default
+	updated_at: datetime # default, on_update
+	# constraints
+	# unique(cart_id, menu_item_id)
+	# check(quantity > 0)
+	# fk(cart_id, restaurant_id) -> carts(id, restaurant_id), on delete cascade
+	# fk(menu_item_id, restaurant_id) -> menu_items(id, restaurant_id)
+
+```
+
+Each customer has one cart across all restaurants. Clear its items before switching
+restaurants. The composite foreign keys enforce restaurant consistency; menu_items
+also has unique(id, restaurant_id) to support this reference.
 
 #### ask ai todo
 

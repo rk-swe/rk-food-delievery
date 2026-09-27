@@ -10,7 +10,10 @@ is `docs/superpowers/plans/2026-09-28-rest-jpa-refactor.md`, tasks 3.1–3.6.
 The revision includes POST `/api/auth/tokens`, 30-minute JWTs and Swagger bearer
 authorization with JWT-only protected APIs, replacing Basic authentication (task 3.6).
 The user has authorized this revision. Implement prerequisite tasks 3.1–3.6
-immediately, in order, and record their evidence in the existing ledger. Do not
+immediately, integrating and verifying in order, and record their evidence in
+the existing ledger. Follow the refactor plan's faster 3.3–3.6 schedule:
+independent restaurant/partner implementation and JWT preparation may overlap
+in isolated worktrees, with shared-file edits and database tests serialized. Do not
 continue task 4 under the old conventions. Once task 3.6 is complete and
 verified, continue the remaining assignment tasks through task 13 without
 waiting for a further review checkpoint.
@@ -35,6 +38,13 @@ Java/JSON fields camelCase. Flyway owns the schema; Hibernate validates it.
 
 Use the approved plan at
 `docs/superpowers/plans/2026-09-28-assignment-completion.md` task by task.
+For tasks 4–13, follow its "Faster execution" revision: parallel implementation
+lanes are authorized, with 4/5 alongside 6 and, after 7, 8/9 alongside 10.
+Use isolated worktrees and a single coordinator for shared contracts, migration
+versions, integration and ledger updates. Serialize all tests using the shared
+assignment database/vhost. Keep smaller slices inside their numbered task;
+do not add per-slice review checkpoints or commits. Tasks 3.1–3.6 remain actual
+prerequisites; assuming them complete for scheduling does not mark them done.
 Use the `test-driven-development` skill before implementation and the
 `verification-before-completion` skill before committing or reporting success.
 For task execution, retain the plan ledger in

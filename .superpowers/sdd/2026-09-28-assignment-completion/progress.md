@@ -44,3 +44,31 @@ only: task 3.6 removes Basic authentication and migrates existing API clients/te
 Updated the revision spec, plan references and guidance; implementation and
 plan review remain pending. Existing task completion/test evidence is unchanged.
 This is documentation only; no JWT implementation or runtime verification claimed.
+
+## Remaining-task execution revision — 2026-09-28
+
+User requested a faster plan for tasks 4–13, assuming verified task 3.6 as the
+starting boundary, and authorized parallel implementation where safe. Updated
+the existing assignment plan with dependency waves, smaller in-task red/green
+slices, shared-contract/file ownership, migration ordering and a single test
+slot for the dedicated database/broker. Preserve numbered task commits and
+focused/full verification; avoid per-slice reviewer handoffs and unnecessary
+unchanged-suite reruns. Planning dependency review used gpt-6-astra; retained
+gpt-5.6-terra for implementation. No speed mode was enabled or claimed.
+
+The authorization recorded in AGENTS.md supersedes older "approval pending"
+notes above. This plan revision changes no runtime code or completion status:
+tasks 3.1–3.6 and 4–13 still need implementation evidence. No Maven run is
+claimed for this documentation-only revision.
+
+## Faster prerequisite execution — 2026-09-28
+
+User requested the same execution optimization for 3.3–3.6. Updated the REST/JPA
+plan with overlapping restaurant/partner implementation, early resource-audit
+and isolated JWT preparation, smaller red/green checkpoints, single ownership
+of shared files, and parallel bearer test-client migration after the shared
+helper is stable. Final integration/commits remain 3.3 → 3.4 → 3.5 → 3.6 with
+each task's focused/full tests. Retained every required assertion, existing model
+choices and shared test DB/vhost restrictions. Removed stale review-pending
+language from the refactor plan. Documentation only; no runtime verification
+or additional task completion is claimed.

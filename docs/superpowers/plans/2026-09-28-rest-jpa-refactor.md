@@ -10,7 +10,7 @@
 
 **Spec:** [Resource APIs and Hibernate persistence](../specs/2026-09-28-rest-jpa-design.md), with original assignment business invariants retained.
 
-**Status:** Plan prepared for user review; no refactor implementation claimed. The user requested the JWT/Swagger extension recorded in 3.6; this remains documentation, not an implemented feature. Execute 3.1–3.6 after review and before original task 4. Preserve original tasks 1–13 and their evidence. Planning model requested: Astra; implementation model requested: gpt-5.6-terra. The user requested normal planning speed and fast implementation speed; model tools do not expose a speed-tier control, so do not claim those speeds were set.
+**Status:** Authorized implementation plan; this document does not establish implementation status. Consult the execution ledger. Execute and integrate 3.1–3.6 in order before original task 4, allowing the independent preparation below. Preserve original tasks 1–13 and their evidence. Planning model requested: gpt-6-astra; implementation model requested: gpt-5.6-terra. The user requested normal planning speed and fast implementation speed; model tools do not expose a speed-tier control, so do not claim those speeds were set.
 
 ## Global Constraints
 
@@ -118,6 +118,105 @@ The `J25` notation is not used in commands: each command includes the required e
 - [ ] Implement JPA entities/repositories and transactional services; extend CityController to all resource verbs and move CuisineController SQL into CuisineRepository. Flush city writes within the existing conflict-translation boundary and rethrow without continuing the failed transaction. Remove corresponding old handlers immediately; keep unrelated admin code until its task.
 - [ ] Run focused command and full suite per protocol; commit `refactor: expose city and cuisine resource services`.
 
+## Faster execution for 3.3–3.6 — 2026-09-28 revision
+
+The user requested shorter execution for these tasks. Preserve all named
+assertions below, but work in small red/green slices and overlap independent
+feature files. This section overrides repeated setup and all-tests-first
+interpretations of the execution protocol; it does not waive task verification.
+No new approval or per-slice review gate is needed. Do not mark prerequisites
+complete by assumption or restart already verified work.
+
+### Schedule and file ownership
+
+Start after verified 3.1/3.2, using their actual User/City mappings, spatial
+strategy, CurrentUser and test helpers. Check their evidence once. Up to three
+workers use isolated worktrees; the coordinator owns integration and the shared
+test slot. Retain a worker across related slices rather than starting a fresh
+agent/reviewer for each test.
+
+| Stage | Primary lane | Independent parallel lane | Integration gate |
+| --- | --- | --- | --- |
+| A | 3.3 restaurant implementation | 3.4 partner service/repository/new tests; 3.5 route/operation metadata inventory and documentation draft | Commit verified 3.3 first |
+| B | 3.4 integrate partner routes and retire admin code | 3.5 prepare contract tests; 3.6 JWT configuration/validator tests and new auth-only files on a private branch | Commit verified 3.4 before whole-route audit |
+| C | 3.5 annotations, resource audit and documentation | 3.6 continue isolated JWT implementation and fail-closed configuration tests | Commit verified 3.5 with current Basic runtime |
+| D | 3.6 integrate JWT security and shared token test helper | After helper is stable, migrate disjoint feature test files to bearer in parallel; prepare final Swagger/login docs | Merge all 3.6 slices, run its focused/full checks, commit once |
+
+Parallel preparation never changes the integrated authentication mode early.
+Do not merge unfinished JWT configuration that would make a 3.3–3.5 application
+require JWT_SECRET or break its existing tests. Task 3.6 may run its isolated
+configuration tests early; its full API contract waits for integrated 3.5.
+
+- Restaurant worker owns restaurant entities/repositories/services/controllers
+  and RestaurantResourceIntegrationTest/RestaurantConcurrencyIntegrationTest.
+  Partner worker owns delivery feature files and its two named test classes.
+- Coordinator applies shared changes sequentially: CityService guard, additions
+  to UserRepository/UserCredentialRepository, AdminCrudController/AdminCrudService/
+  AdminRepository removal, AdminCrudIntegrationTest route migration, SecurityConfig,
+  pom.xml, application properties, IntegrationTestSupport and ledger. Workers
+  supply precise patches instead of editing these concurrently. Remove restaurant
+  admin methods in 3.3; delete the remaining admin classes only in 3.4.
+- Task 3.5 applies controller annotations after their owning feature is integrated.
+  Its early inventory fixes paths, role descriptions, tags and unique operationIds;
+  it does not create another controller set or duplicate the role matrix.
+  OpenApiConfig and shared contract tests have one writer at a time: 3.5, then 3.6.
+- The 3.6 auth worker owns new auth files and JwtConfig. Coordinator integrates
+  its dependency/security/property/repository patches together, then exposes a
+  single helper that obtains real tokens through POST /api/auth/tokens. Partition
+  migration of existing test call sites by file only after that helper works.
+  Keep explicit Basic-rejection tests; never replace real auth with mocked principals.
+- No schema migration is expected. Do not reopen the proven geography choice,
+  add a parallel auth framework or expand token scope. Any necessary forward
+  migration requires concrete failing evidence and coordinator-assigned version.
+
+### Small checkpoints, without additional commits
+
+Use the exact interfaces and named assertions in the task sections below.
+For each checkpoint write its failing test, run it, implement and rerun it.
+Do not wait to author every test for a whole task before getting its first slice
+green. Checkpoints are progress units, not independent completion claims.
+
+| Task | Checkpoints in execution order | Final named test command remains |
+| --- | --- | --- |
+| 3.3 | JPA create/patch/spatial round-trip → role-filtered lists/detail/mine → hours update → city/hour races and legacy route removal | RestaurantResourceIntegrationTest, RestaurantConcurrencyIntegrationTest, AdminCrudIntegrationTest |
+| 3.4 | Partner CRUD/credential rollback → principal-derived presence/timestamps → busy/deactivation races → delete admin remnants | DeliveryPartnerResourceIntegrationTest, PartnerPresenceIntegrationTest, AdminCrudIntegrationTest, SecurityIntegrationTest |
+| 3.5 | Resource tags/operation metadata → parameterized route/role/Location audit → native-query boundary scan and accurate docs | OpenApiContractIntegrationTest, ResourceRouteContractIntegrationTest, SecurityIntegrationTest |
+| 3.6 | Fail-closed secret and JWT validators → token issuance/current-account bearer identity → atomic security/helper cutover → parallel test-client migration → final bearer OpenAPI/docs audit | JwtAuthenticationIntegrationTest, JwtConfigurationTest, SecurityIntegrationTest, OpenApiContractIntegrationTest, ResourceRouteContractIntegrationTest |
+
+### Reduce repeated setup and test overhead
+
+- During development use `./mvnw -Dtest=ClassName#methodName test` for the affected
+  assertion, or its class when methods are parameterized/fixtures are shared.
+  Set the required JAVA_HOME on every invocation. A missing interface or intended
+  failing assertion supplies RED evidence; infrastructure failure does not.
+- At task integration run its exact focused command below and full `./mvnw test`
+  once after the last change, then record evidence and make its numbered commit.
+  Repeat only for changed code, a failure or a concrete unresolved concern.
+  Do not rerun an unchanged baseline merely because a worker/context changed.
+- Serialize every DB/broker test run, cleanup and live-app check on
+  fooddelivery_assignment_test and its dedicated vhost. Worktrees share these
+  resources. Coordinator records the test-slot holder; close its application
+  contexts/listeners before handoff. Other workers continue implementation or
+  documentation while the slot is occupied. Never switch to the ordinary DB.
+- Reuse existing fixtures, Spring context configuration and injected Clock.
+  Parameterize JWT rejection cases within one compatible context; use isolated
+  configuration tests for invalid secrets, avoiding a full DB-backed application
+  restart per malformed secret/token. Retain actual bearer/filter integration
+  coverage and real PostGIS race tests; no timing sleeps or H2 substitutions.
+- Extend 3.5's existing route matrix in 3.6 by changing its authentication helper
+  and adding token/security assertions; do not rebuild the same matrix twice.
+  Write resource documentation in 3.5 and add the login instructions in 3.6;
+  do not spend time polishing a temporary Basic Swagger workflow.
+- Coordinator reviews each task diff once. Do one final cross-feature auth and
+  persistence review before 3.6's final verification; no fresh reviewer per slice.
+  Record slice result, actual command/totals, elapsed time, wait/blocker and next
+  step in the existing ledger. If a slice stalls, identify the failing assertion
+  and make the next behavior smaller instead of restarting the whole task.
+
+This schedule reduces repeated handoffs and overlaps independent code work.
+Shared-file integration and final database verification remain sequential.
+No measured runtime baseline supports a fixed finish-time promise.
+
 ### Task 3.3: Restaurant resources, owner visibility and transactional hours
 
 **Files:** Restaurant files in map; modify `city/service/CityService.java` to use the restaurant existence query; remove restaurant methods from admin classes; migrate restaurant paths in `admin/AdminCrudIntegrationTest.java`. Test: `restaurant/RestaurantResourceIntegrationTest.java`, `restaurant/RestaurantConcurrencyIntegrationTest.java`.
@@ -184,4 +283,4 @@ The `J25` notation is not used in commands: each command includes the required e
 
 Coverage checked: route/permission matrix (3.2–3.4), auth and mappings (3.1), scalar CRUD and transactions (3.2–3.4), hours and locks (3.3), credential rollback and busy checks (3.4), resource Swagger metadata and durable guidance (3.5), JWT issuance/validation, live principal/role lookup, final JWT-only route/Swagger audit and secret configuration (3.6). Five Review Focus conditions each have named integration assertions above. Every cross-task repository/service signature is declared before its consumer. No migration is expected; a necessary schema change must be a new forward migration with schema tests, never an edit to V1–V13.
 
-This is a planning deliverable, pending user review under the writing-plans skill's execution handoff. Preserve the already requested implementation model; do not ask the user to choose it again. After review, execute 3.1–3.6, then resume original task 4 using the resource route conventions in the spec and updated original plan.
+The user has authorized execution and the faster 3.3–3.6 schedule above. Preserve the requested implementation model; do not ask the user to choose it again. Integrate and verify 3.1–3.6 in order, then continue original tasks 4–13 using their updated parallel schedule and resource conventions. This planning revision is not implementation evidence.

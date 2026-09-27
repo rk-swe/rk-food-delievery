@@ -1,19 +1,19 @@
 # Food Delivery Assignment Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Tasks 1–3 have implementation evidence in the ledger. The user has requested a REST/Hibernate revision before further feature work; read the revision notice below before executing task 4. Checkboxes alone are not an execution-status source.
+> **For agentic workers:** Use superpowers:executing-plans for implementation and superpowers:dispatching-parallel-agents for the independent lanes below. Tasks 1–3 have implementation evidence in the ledger. Finish the authorized REST/Hibernate prerequisites before executing task 4. Checkboxes alone are not an execution-status source. The 2026-09-28 execution revision below governs tasks 4–13.
 
-## REST/Hibernate revision — implementation plan review pending
+## REST/Hibernate revision — authorized prerequisite
 
 Read [Resource APIs and Hibernate persistence](../specs/2026-09-28-rest-jpa-design.md).
 The user requested resource-based routes and Swagger organization, Hibernate for
 ordinary persistence, and consistent guidance for future agents. The current
 code still uses the old routes and JDBC persistence. Do not continue task 4
-until the revision design and [prerequisite plan](2026-09-28-rest-jpa-refactor.md)
-have been reviewed and tasks 3.1–3.6 completed. Preserve existing task numbers, commits,
+until tasks 3.1–3.6 in the authorized [prerequisite plan](2026-09-28-rest-jpa-refactor.md)
+are completed and verified. Preserve existing task numbers, commits,
 verification evidence and the ledger; do not mark tasks 1–3 unimplemented.
 
-The linked proposal defines replacement routes and permission scopes for current
-features and future workflow resources. After approval it overrides conflicting
+The linked design defines replacement routes and permission scopes for current
+features and future workflow resources. It overrides conflicting
 endpoint examples below and in the preflight rulings. The assignment's locking,
 idempotency, payment, stock and event invariants remain unchanged.
 
@@ -139,8 +139,8 @@ Produces city/restaurant/partner create/list/get/patch/deactivate APIs and
 
 ### 3.1–3.6. Resource REST and Hibernate prerequisites
 
-Read and execute [the REST/JPA refactor plan](2026-09-28-rest-jpa-refactor.md)
-after user review. Its tasks are independently verified commits:
+Read and execute the authorized [REST/JPA refactor plan](2026-09-28-rest-jpa-refactor.md).
+Its tasks are independently verified commits:
 
 - 3.1: Hibernate users/credentials and real PostGIS mapping proof.
 - 3.2: City/cuisine resource services and visibility.
@@ -152,6 +152,156 @@ after user review. Its tasks are independently verified commits:
 Record these in the existing ledger without renumbering tasks 1–13. The original
 completed task 3 is historical; its caller-ID presence signature is superseded
 by principal-derived self service methods in prerequisite 3.4.
+
+## Faster execution for tasks 4–13 — 2026-09-28 revision
+
+**Planning assumption:** 3.6 is the completed prerequisite for this schedule;
+this does not assert it is implemented now. Check its evidence once before
+starting execution. Do not redo prerequisites that already have valid evidence.
+The user authorized parallel work and continuation through task 13; no new
+review checkpoint is required between tasks. Preserve gpt-6-astra for planning
+and gpt-5.6-terra for implementation. Use fast mode only if the execution tool
+exposes it; reasoning effort is not a speed-mode setting.
+
+**Outcome:** retain all required APIs, races, recovery proofs and demo scope,
+while overlapping independent implementation and avoiding repeated handoffs.
+Task numbers and one numbered task per commit remain unchanged. The slices
+below are working checkpoints within a task, not extra commits or review gates.
+There is no measured runtime baseline for these remaining tasks, so do not
+promise a fixed completion time or speedup.
+
+### Dependency and integration schedule
+
+Use at most three implementation workers plus the coordinator. Keep a worker
+on a feature lane across related slices; send follow-ups instead of spawning a
+fresh implementer/reviewer for each checklist item. Dispatch only ready work.
+
+| Wave | Lane A | Lane B | Lane C | Required join |
+| --- | --- | --- | --- | --- |
+| 1, after verified 3.6 | 4 menu/search, then 5 cart | 6 events/notifications | 12 public catalog references and API request draft only | Integrate 4, 5, 6 before 7 |
+| 2 | 7 checkout, shared order contracts and idempotency | Finish any wave-1 work; otherwise release worker | Continue 12 draft against frozen routes | Integrate and verify 7 before runtime work on 8/10 |
+| 3 | 8 payment/refund, then 9 owner lifecycle | 10 offers/assignment using committed fixtures | 12 seeder after 4–7; 13 race-script/video-outline drafts | Integrate 8, 9, then 10; task 10's final command includes task 9 |
+| 4, after 9 and 10 | 11 pickup/delivery | 11 reviews, in disjoint review files | Finish 12 API examples and 13 scripts | Integrate both task-11 slices in one task-11 commit |
+| 5 | 12 full demo happy-path verification and commit | 13 recovery tests/docs on integrated 11; no broker disruption during another run | No extra worker unless a concrete independent item remains | Commit 12, then final verification and commit 13 |
+
+Task 10 does not call task 8 or 9 services to arrange its tests: use committed
+paid/Accepted/Preparing/Ready fixtures through the test helper. This permits
+parallel implementation, not bypassing integration tests. Task 9 consumes
+RefundService from task 8, so those tasks stay sequential. Reviews can be
+implemented against a committed Delivered fixture while pickup/delivery is
+being built, then the combined task verifies the real transition-to-review path.
+Task 12/13 drafts are preparation only: never mark them complete early.
+
+### Ownership and contracts that prevent parallel rework
+
+- Coordinator alone integrates commits, assigns unused Flyway versions and edits
+  shared build/configuration, shared entities/DTOs, test support and the ledger.
+  Workers request a small shared change with its reason; they do not race to
+  alter pom.xml, SecurityConfig, RabbitConfig, Order, OrderResponse or migrations.
+- Give concurrent workers isolated worktrees. A worker owns its task's feature
+  and test files; parallel task-11 workers own delivery and review respectively.
+  Rebase dependent work onto the integrated prerequisite before continuing.
+  Integrate one task patch at a time, run its final checks on that exact tree,
+  then make its numbered commit. Do not commit a combined wave.
+- Allocate migration versions in the integration order 4, 5, 6, 7, 8, 9, 10,
+  11, 12, 13, skipping tasks with no migration. Reserve actual next-unused
+  versions at dispatch; no duplicate numbers, edits to applied migrations, or
+  lower-version migration introduced after a higher one was applied. Deferred
+  workers may write migration drafts but wait for preceding migrations before
+  database verification. Keep demo records out of production migrations.
+- Task 4 owns menu entities, menu repository, stock-delta writes and restaurant
+  search; task 5 consumes these mappings. Task 6 owns event envelope, routing,
+  outbox/inbox and notification infrastructure. Do not duplicate that plumbing
+  inside payment or delivery features.
+- Before dispatching 8 and 10, task 7 freezes order/payment entity mappings,
+  OrderResponse and the full state enums from the spec, including separate
+  restaurant-response, assignment, refund and version fields. Its forward
+  migration supplies the shared order columns needed by 8–11 (payment deadline,
+  response timing, assignment round and stock-release guard). Task 8 owns
+  webhook receipt/refund tables; task 10 owns offer tables and active-partner
+  uniqueness. Later features mutate existing fields without editing shared
+  mappings concurrently. Record actual Java types/methods in the ledger handoff.
+- Freeze `OrderRepository.findLockedById(UUID): Optional<Order>` in task 7 and
+  reuse it across 8–11. Lock order before payment/partner; cart and checkout lock
+  customer first; reserve stock in sorted item-ID order. Task 7 owns
+  `StockReservationService.releaseOnce(UUID orderId): void` and its tests.
+  Native mutations flush dependent JPA writes and refresh affected managed
+  entities before reuse. Add shared committed paid-order fixture builders in
+  task 7 so later workers do not duplicate setup or call unfinished services.
+- Task 7 supplies `IdempotencyService.execute(UUID actorId, String operation,
+  String key, String requestHash, Supplier<StoredResponse> mutation): StoredResponse`,
+  joining the caller transaction, plus `StoredResponse(int status, String body,
+  String location)` (nullable location). Operation includes resource identity.
+  Canonical request hashing and response serialization live in this one module.
+  A duplicate replays before current-state/cart checks; failed work rolls back
+  both business changes and receipt. Feature controllers derive actor IDs from
+  CurrentUser; never accept trusted actor IDs in HTTP DTOs.
+- Task 6 freezes DomainEvent and append/inbox contracts before checkout. Add
+  feature-specific payloads in the owning feature, using its allowlisted event
+  types. Assignment/refund listeners are added by 10/8; task 6 must not install
+  placeholder consumers that ACK and discard those business events.
+- Each feature owns its Swagger metadata and JWT role/ownership tests in its
+  task. Preserve the public, HMAC-authenticated webhook exception in task 8;
+  no other protected feature falls back to Basic. Extend resource tags for new
+  features rather than applying the prerequisite's six-tag limit forever.
+
+### Small working slices within each numbered task
+
+Each row is a sequence of focused red/green cycles. Use the named test classes
+in the task below; add methods there instead of another framework or harness.
+Finish a slice, record its concrete result, and continue without a review wait.
+
+| Task | Slice sequence | Completion evidence |
+| --- | --- | --- |
+| 4 | Owner category/item writes and stock delta → menu search → restaurant spatial search | Ownership, concurrent stock adjustment and combined filters/radius/pagination tests |
+| 5 | Basic cart/version → restaurant replacement → concurrent first-cart/replacement | CartIntegrationTest; no stock reservation and no mixed restaurant |
+| 6 | Transactional outbox → confirmed publish/routing → inbox/retry/subscriber isolation | EventDeliveryIntegrationTest with real RabbitMQ and rollback/dedup checks |
+| 7 | Shared order/idempotency mappings → one checkout + snapshots → rollback/replay → stock contention | CheckoutConcurrencyTest including 20 customers/stock 5 and CartIntegrationTest |
+| 8 | Signed webhook + receipts → failure/expiry/release → late success/refund | PaymentIntegrationTest and CheckoutConcurrencyTest; barrier-controlled expiry race |
+| 9 | Owner decisions + tracking → preparation/readiness → delayed response job | OrderLifecycleIntegrationTest and PaymentIntegrationTest; decision/delay race |
+| 10 | Eligibility/offers → atomic acceptance → expiry/retry rounds | DeliveryAssignmentConcurrencyTest; after task 9, integrated OrderLifecycleIntegrationTest |
+| 11 | Pickup/delivery and review implementation in parallel → combined lifecycle proof | DeliveryLifecycleIntegrationTest and ReviewIntegrationTest; one commit |
+| 12 | Early source/request drafts → deterministic seeder → executable full happy path | DemoSeedIntegrationTest after 11, including seed-twice and profile isolation |
+| 13 | Early scripts/outline → recovery fault injection → final checks/rehearsal | AsyncRecoveryIntegrationTest, test, verify, race scripts and SQL invariants |
+
+Keep the complete behavioral assertions in each task below. Smaller slices do
+not remove atomicity, authorization, idempotency or failure-path requirements.
+Do not add optional open-now search, per-item reviews, larger catalogs, UI,
+deployment, generic workflow frameworks or unrelated refactors.
+
+### Verification without duplicated work
+
+- During a slice, run only its affected test class/method to observe RED and
+  GREEN. Run the task's named focused command and full `./mvnw test` once after
+  its final integrated change, before committing. Repeat only when code changes
+  or a failure requires it. A new worker/context is not a reason to rerun an
+  unchanged baseline. This retains the existing per-task verification rule.
+- Only one Maven/integration/demo process may use
+  `fooddelivery_assignment_test` and its RabbitMQ vhost at a time, including
+  cleanup, migrations, scheduler tests and broker fault injection. Coordinator
+  grants a single test slot and records its holder; other workers continue
+  writing code, reviewing diffs or drafting docs. Worktrees do not isolate DBs.
+  Stop the holder's application contexts/listeners before releasing the slot;
+  broker fault injection also requires no other application using that broker.
+  Use the prescribed JAVA_HOME for every Maven command and explicit test
+  database/vhost configuration. Never use fooddelivery for tests.
+- Workers report focused evidence; coordinator inspects the task diff and runs
+  final focused/full checks in the integration checkout. No extra independent
+  reviewer cycle for every slice. Do one cross-feature review before the final
+  task-13 verification; fix findings with the relevant regression tests.
+- Reuse the established Spring test profile, issued JWT helper, fixture cleanup
+  and injected Clock. Background jobs/listeners start only when a test needs
+  them; deliberate concurrency remains inside a single test run. Use barriers
+  and bounded eventual assertions, not arbitrary sleeps or unbounded race loops.
+- Task 13 runs focused AsyncRecoveryIntegrationTest, `./mvnw test` and
+  `./mvnw verify` once on the final tree, followed by the documented scripts and
+  SQL assertions. Keep all required checks; do not loop successful whole suites
+  for reassurance. Record any genuinely necessary rerun and its cause.
+- Ledger entries are compact: task/slice, owner, dependency, files, RED/GREEN
+  command/result, final focused/full totals, commit, next ready task. Record
+  actual elapsed time and test/setup wait so subsequent estimates have evidence.
+  If a slice stalls, report the concrete failing check and reduce its scope to
+  the next testable behavior; do not restart planning or silently broaden work.
 
 ### 4. Menu/category management and discovery
 
@@ -249,7 +399,9 @@ Files: new assignment/offers/presence constraints migration,
 `DeliveryOfferExpiryJob.java`, `event/listener/OrderAcceptedListener.java`,
 `delivery/controller/DeliveryOfferController.java`; `DeliveryAssignmentConcurrencyTest.java`.
 Produces `createOffers(UUID orderId): void`, `listMine(UUID partnerId): List<DeliveryOfferResponse>`,
-`acceptOffer(UUID partnerId, UUID offerId): OrderResponse`.
+`acceptOffer(UUID partnerId, UUID offerId, int round, String idempotencyKey): OrderResponse`.
+The acceptance DTO supplies the offer round; authenticated identity supplies
+partnerId. The shared task-7 idempotency boundary includes the round in its hash.
 
 - [ ] Test nearby online/fresh/unoccupied qualification, stale/far/offline exclusion, duplicate OrderAccepted event, offer expiry and unauthorized acceptance.
 - [ ] Verify distance is partner-to-restaurant pickup, not partner-to-customer; ratings do not influence matching. Use the user-confirmed policy: notify nearby eligible partners; first valid acceptance wins.

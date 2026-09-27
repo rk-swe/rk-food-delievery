@@ -230,6 +230,30 @@ class SchemaMigrationTests {
             "SELECT quantity = 2 AND updated_at > '2000-01-02'::timestamptz FROM cart_items WHERE id = ?", Boolean.class, line));
     }
 
+    @Test
+    void userLocationIsOptionalAndStoresWgs84Point() {
+        assertNull(db.queryForObject("SELECT ST_AsText(location::geometry) FROM users WHERE id = ?", String.class, customer));
+        db.update("UPDATE users SET location = ST_GeogFromText('POINT(77 13)') WHERE id = ?", customer);
+        assertEquals("POINT(77 13)", db.queryForObject(
+            "SELECT ST_AsText(location::geometry) FROM users WHERE id = ?", String.class, customer));
+        assertEquals(4326, db.queryForObject(
+            "SELECT ST_SRID(location::geometry) FROM users WHERE id = ?", Integer.class, customer));
+    }
+
+    @Test
+    void cookingDurationSupportsUnknownZeroAndPositiveSeconds() {
+        assertNull(db.queryForObject("SELECT cook_duration_seconds FROM menu_items WHERE id = ?", Integer.class, item));
+        db.update("UPDATE menu_items SET cook_duration_seconds = 0 WHERE id = ?", item);
+        assertEquals(0, db.queryForObject("SELECT cook_duration_seconds FROM menu_items WHERE id = ?", Integer.class, item));
+        db.update("UPDATE menu_items SET cook_duration_seconds = 900 WHERE id = ?", item);
+        assertEquals(900, db.queryForObject("SELECT cook_duration_seconds FROM menu_items WHERE id = ?", Integer.class, item));
+    }
+
+    @Test
+    void cookingDurationCannotBeNegative() {
+        rejects("23514", "UPDATE menu_items SET cook_duration_seconds = -1 WHERE id = ?", item);
+    }
+
     private UUID cart() {
         return id("INSERT INTO carts (customer_id, restaurant_id) VALUES (?, ?) RETURNING id", customer, restaurant);
     }

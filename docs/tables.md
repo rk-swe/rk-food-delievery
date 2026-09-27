@@ -7,6 +7,7 @@ users
 	email: str
 	phone_number: str # e.164 format
 	role: admin | restaurant_owner | customer | delivery_partner
+	location: geography(Point, 4326) | None # unknown until provided; GiST index
 	# audit
 	created_at: datetime # default
 	updated_at: datetime # default, on_update
@@ -117,6 +118,7 @@ menu_items
 	image_url: str
 	ingredients: str
 	calories_kcal: int
+	cook_duration_seconds: int | None # unknown until provided; check >= 0
 	diet_type: Veg | Non Veg
 	price: numeric(10,2) # big_decimal
 	sort_order: int
@@ -256,4 +258,3 @@ also has unique(id, restaurant_id) to support this reference.
 - invoice
 - payment provider for now mocking it
 - refunds
-- delivery_assigment offers to nearby agents

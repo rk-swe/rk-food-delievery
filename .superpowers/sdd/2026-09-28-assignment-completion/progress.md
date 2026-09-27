@@ -1,5 +1,25 @@
 # SDD ledger — plan: docs/superpowers/plans/2026-09-28-assignment-completion.md
 
+## Current handoff — implementation-first revision, 2026-09-28
+
+Main includes Task 4 through `97fe14b`, Task 5 `769f157`, and Task 6 `ac0db5e`
+(schema through V16). Resume implementation at Task 7 after the user switches
+to gpt-5.6-terra and resumes. Task 12 has only an uncommitted preparation draft
+in the assignment-task-12-draft worktree; inspect/reuse it when relevant.
+
+User explicitly authorized implementing remaining features before writing tests,
+then fixing all tests at the end. AGENTS.md and the plan now scope an exception
+to mandatory TDD, per-task reviewers, repeated planning and per-task full suites.
+Default to one continuous inline implementer; optional independent lanes only
+when useful. Compile and commit implementations to main with verification
+pending; write required tests and perform consolidated review/focused checks,
+full `verify`, scripts and rehearsal at the end. Behavioral requirements remain.
+
+This is documentation only; no implementation or Maven run in this turn.
+Preserve the user's already-staged changes in JwtAuthenticationIntegrationTest,
+IntegrationTestSupport and UserPersistenceIntegrationTest. Shared skill files
+were not edited. No automatic model/speed-mode switch is claimed.
+
 2026-09-28 REST/Hibernate revision: user requested resource-oriented APIs and
 Hibernate where practical, plus plan/docs guidance for future AI work. Added
 `docs/superpowers/specs/2026-09-28-rest-jpa-design.md` for detailed review and

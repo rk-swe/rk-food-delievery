@@ -1,15 +1,86 @@
 # Food Delivery Assignment Implementation Plan
 
-> **For agentic workers:** Use superpowers:executing-plans for implementation and superpowers:dispatching-parallel-agents for the independent lanes below. Tasks 1–3 have implementation evidence in the ledger. Finish the authorized REST/Hibernate prerequisites before executing task 4. Checkboxes alone are not an execution-status source. The 2026-09-28 execution revision below governs tasks 4–13.
+> **For agentic workers:** Tasks through 6 are committed to main. Resume at 7 after the user switches to gpt-5.6-terra and resumes execution. The implementation-first override immediately below governs remaining tasks and supersedes conflicting skill defaults and older execution prose. Read the existing spec and contracts once; do not restart planning. Checkboxes alone are not an execution-status source.
+
+## Implementation-first override for tasks 7–13 — 2026-09-28
+
+The user explicitly requested less process overhead: implement the remaining
+features first, then write tests and fix all failures toward the end. This
+changes execution order, not product scope or acceptance criteria. This section
+and AGENTS.md override older TDD, RED/GREEN, per-task review, per-task full-suite,
+worktree and commit-gating instructions in this plan and applicable skills.
+Shared skill files remain unchanged. This planning turn stops after this update;
+the user will switch models before implementation resumes.
+
+### Implementation pass
+
+1. Use one continuing gpt-5.6-terra implementer by default. Work directly on main,
+   as authorized, preserving unrelated staged/unstaged changes. No new design
+   approval, task brief/report generation, per-task reviewer, review package,
+   or model escalation is required. Read only the current task and dependencies.
+2. Implement 7 first, freezing order/payment states, DTOs, locking, idempotency,
+   stock release and outbox contracts. Then implement 8, 9, 10, 11 and 12;
+   prepare task 13's scripts/docs with the final integrated flow. Optional
+   persistent lanes may overlap 8/9 with 10 after task 7's shared contracts
+   compile. Do not add workers when handoff/integration would cost more time.
+3. Preserve the concrete interfaces, dependency ordering, feature ownership and
+   migration ordering below. If parallel lanes are used, isolate their worktrees
+   and have one coordinator own shared files and integrate to main. Inspect the
+   actual next unused migration version (main currently includes V16).
+4. Run `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
+   ./mvnw -DskipTests compile` after each integrated task; fix compilation failures
+   immediately. Commit that numbered task's implementation to main, without
+   bundling unrelated staged changes. Record its commit, produced contracts,
+   compile result and deferred test classes as "implemented; verification
+   pending". Do not mark it verified or complete yet. No push is implied.
+5. New tests and the numbered tasks' test commands are deferred to the validation
+   pass. Do not run the full suite between implementation commits or require
+   a failing test before writing production code. Existing tests remain intact.
+   An earlier narrow diagnostic check is optional when it resolves a concrete
+   integration uncertainty, rather than becoming a new task gate.
+
+### Final test, fix and delivery pass
+
+- Write and complete CheckoutConcurrencyTest, PaymentIntegrationTest,
+  OrderLifecycleIntegrationTest, DeliveryAssignmentConcurrencyTest,
+  DeliveryLifecycleIntegrationTest, ReviewIntegrationTest,
+  DemoSeedIntegrationTest and AsyncRecoveryIntegrationTest against the original
+  task requirements and mandatory evidence matrix. Include CartIntegrationTest
+  and existing API/auth/event regressions. Retain all authorization, rollback,
+  idempotency, concurrency, waiting-state, recovery and demo-isolation assertions.
+  A green existing suite alone does not prove new feature coverage.
+- Run the named focused tests in one batched command where practical. Fix real
+  failures in the relevant feature, rerun affected tests, and continue until all
+  acceptance cases pass. Do not delete, skip or weaken tests to manufacture green.
+- Perform one consolidated self-review of the integrated behavior and contracts
+  while validating. No mandatory independent reviewer/re-review loop. Keep the
+  review limited to missing requirements and correctness; avoid optional refactors.
+- Run `./mvnw verify` with the prescribed JAVA_HOME on the final tree without
+  skipping tests. This includes the full test suite and Spotless check, replacing
+  duplicate unchanged `test` plus `verify` runs. Fix formatting and all failures;
+  rerun affected checks and final verify after corrections. Existing successful
+  runs need not be repeated merely because the executor or checkout changed.
+- Run task 13's race scripts, SQL invariants, spatial-plan inspection and demo
+  rehearsal. Use only the dedicated assignment database and test RabbitMQ vhost,
+  with one process/test slot at a time; isolate broker fault injection from other
+  applications. Preserve real PostgreSQL/PostGIS/RabbitMQ integration behavior.
+- Commit tests and fixes to main in coherent groups identified by numbered task;
+  cross-task final verification/docs can belong to task 13. Update ledger status
+  to verified/complete only with actual evidence for every required assertion.
+  Verification-before-completion still applies to success claims. Report any
+  genuine blocker honestly; do not claim unfinished tests or rehearsal succeeded.
+
+The earlier execution schedules and test-first checklists below retain their
+behavioral requirements and historical context, but their process timing is
+superseded for tasks 7–13 by this override.
 
 ## REST/Hibernate revision — authorized prerequisite
 
 Read [Resource APIs and Hibernate persistence](../specs/2026-09-28-rest-jpa-design.md).
 The user requested resource-based routes and Swagger organization, Hibernate for
-ordinary persistence, and consistent guidance for future agents. The current
-code still uses the old routes and JDBC persistence. Do not continue task 4
-until tasks 3.1–3.6 in the authorized [prerequisite plan](2026-09-28-rest-jpa-refactor.md)
-are completed and verified. Preserve existing task numbers, commits,
+ordinary persistence, and consistent guidance for future agents. Tasks 3.1–3.6
+in the authorized [prerequisite plan](2026-09-28-rest-jpa-refactor.md) are now
+committed, followed by tasks 4–6. Preserve existing task numbers, commits,
 verification evidence and the ledger; do not mark tasks 1–3 unimplemented.
 
 The linked design defines replacement routes and permission scopes for current

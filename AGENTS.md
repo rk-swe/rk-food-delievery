@@ -1,5 +1,9 @@
 # Development guidance
 
+Current handoff: prerequisites 3.1–3.6 and tasks 4–6 are already committed to
+main through `ac0db5e`. Do not repeat them. Remaining tasks 7–13 use the
+implementation-first exception under "Execution and verification" below.
+
 ## Requested REST and Hibernate revision
 
 The user requested resource-oriented REST APIs and Hibernate wherever practical.
@@ -38,15 +42,31 @@ Java/JSON fields camelCase. Flyway owns the schema; Hibernate validates it.
 
 Use the approved plan at
 `docs/superpowers/plans/2026-09-28-assignment-completion.md` task by task.
-For tasks 4–13, follow its "Faster execution" revision: parallel implementation
-lanes are authorized, with 4/5 alongside 6 and, after 7, 8/9 alongside 10.
-Use isolated worktrees and a single coordinator for shared contracts, migration
-versions, integration and ledger updates. Serialize all tests using the shared
-assignment database/vhost. Keep smaller slices inside their numbered task;
-do not add per-slice review checkpoints or commits. Tasks 3.1–3.6 remain actual
-prerequisites; assuming them complete for scheduling does not mark them done.
-Use the `test-driven-development` skill before implementation and the
-`verification-before-completion` skill before committing or reporting success.
+For remaining tasks 7–13, the user's latest instruction is implementation first,
+then write tests and fix all failures near the end. Follow the plan's
+"Implementation-first override for tasks 7–13" ahead of older execution rules.
+This is an assignment-scoped exception to skill defaults: no mandatory TDD/RED
+cycle, per-task reviewer, repeated planning/approval, or full test suite before
+each implementation commit. Do not rewrite the shared skill files.
+
+Use gpt-5.6-terra for implementation after the user switches models and resumes.
+Default to one continuous inline implementer in the main checkout; the user
+authorized incremental commits to main. Preserve unrelated staged and unstaged
+changes, and stage only owned files. Independent lanes remain optional (8/9
+alongside 10 after task 7); use them only when they reduce elapsed time. Use
+isolated worktrees only for concurrent lanes, with one coordinator owning shared
+contracts, migrations and integration. Do not spawn per-task implementers or
+reviewers by default, or automatically escalate models on routine fixes.
+
+Compile after integrating each numbered task, commit it to main, and record
+"implemented; verification pending" in the ledger. Keep one numbered task per
+implementation commit. Write the required tests after the implementation pass,
+run the named coverage and full final verification, and fix failures before
+claiming completion. The verification-before-completion skill still governs
+verified/passing/completed claims; compilation is not behavioral verification.
+Perform one consolidated self-review during final validation, not review loops.
+Keep all REST/Hibernate/JWT, atomicity, ownership and recovery requirements.
+Serialize all tests using the shared assignment database/vhost.
 For task execution, retain the plan ledger in
 `.superpowers/sdd/2026-09-28-assignment-completion/progress.md`.
 
@@ -55,6 +75,9 @@ for all Maven invocations. Tests must use the dedicated
 `fooddelivery_assignment_test` PostgreSQL/PostGIS database and the local
 RabbitMQ test vhost; never run assignment tests against `fooddelivery`.
 
-Run `./mvnw test` before a task commit, plus the task's named focused test
-command. Keep one numbered plan task per commit. Use real PostgreSQL/PostGIS
-and RabbitMQ for integration behavior; do not substitute H2.
+For tasks 7–13 run `./mvnw -DskipTests compile` before implementation commits.
+At the final validation phase, run all required named tests (they may be batched),
+then `./mvnw verify` without skipping tests; it includes the full test lifecycle
+and formatting checks, so an additional unchanged `./mvnw test` is unnecessary.
+Fix failures and rerun affected tests, then verify the final tree. Use real
+PostgreSQL/PostGIS and RabbitMQ; do not substitute H2 or weaken assertions.

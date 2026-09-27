@@ -1,6 +1,7 @@
 package com.rk.fooddelivery.user;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatObject;
 
 import com.rk.fooddelivery.auth.Role;
 import com.rk.fooddelivery.support.IntegrationTestSupport;
@@ -70,7 +71,7 @@ class UserPersistenceIntegrationTest extends IntegrationTestSupport {
 
     assertThat(persisted.isActive()).isTrue();
     assertThat(persisted.isOnline()).isFalse();
-    assertThat(persisted.getLocation()).isNull();
+    assertThatObject(persisted.getLocation()).isNull();
     assertThat(persisted.getCreatedBy()).isEqualTo(actor);
     assertThat(persisted.getUpdatedBy()).isEqualTo(actor);
     assertThat(persisted.getCreatedAt()).isNotNull();

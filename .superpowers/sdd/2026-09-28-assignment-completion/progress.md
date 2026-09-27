@@ -20,6 +20,13 @@ Preserve the user's already-staged changes in JwtAuthenticationIntegrationTest,
 IntegrationTestSupport and UserPersistenceIntegrationTest. Shared skill files
 were not edited. No automatic model/speed-mode switch is claimed.
 
+Task 7: implemented; verification pending. Added V17 checkout workflow schema,
+Hibernate order/order-item/payment/idempotency models, atomic guarded stock
+reservation, immutable price snapshots, pending payment deadline, cart clearing,
+stock-release guard, checkout resource and outbox event. Compile:
+`JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ./mvnw -DskipTests compile`
+passed. Deferred coverage: CheckoutConcurrencyTest and CartIntegrationTest.
+
 2026-09-28 REST/Hibernate revision: user requested resource-oriented APIs and
 Hibernate where practical, plus plan/docs guidance for future AI work. Added
 `docs/superpowers/specs/2026-09-28-rest-jpa-design.md` for detailed review and

@@ -68,7 +68,7 @@ public abstract class IntegrationTestSupport {
             .andReturn()
             .getResponse()
             .getContentAsString();
-    String token = objectMapper.readTree(response).path("accessToken").asText();
+    String token = objectMapper.readTree(response).path("accessToken").asString();
     if (token.isBlank()) {
       throw new IllegalStateException("Token fixture request did not return an access token");
     }

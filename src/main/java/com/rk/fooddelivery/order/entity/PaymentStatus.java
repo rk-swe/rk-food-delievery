@@ -1,0 +1,2 @@
+package com.rk.fooddelivery.order.entity;
+public enum PaymentStatus { PENDING("Pending"), SUCCESS("Success"), FAILED("Failed"); private final String value; PaymentStatus(String value){this.value=value;} public String value(){return value;} public static PaymentStatus from(String value){for(PaymentStatus p:values())if(p.value.equals(value))return p;throw new IllegalArgumentException("Unknown payment status");}}

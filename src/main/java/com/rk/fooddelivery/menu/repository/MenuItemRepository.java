@@ -25,4 +25,12 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, UUID> {
       Pageable pageable);
 
   boolean existsByCategoryIdAndAvailableTrue(UUID categoryId);
+
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query("update MenuItem i set i.availableQuantity=i.availableQuantity-:quantity where i.id=:id and i.restaurantId=:restaurantId and i.available=true and i.availableQuantity>=:quantity")
+  int reserve(UUID id, UUID restaurantId, int quantity);
+
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query("update MenuItem i set i.availableQuantity=i.availableQuantity+:quantity where i.id=:id")
+  int restore(UUID id, int quantity);
 }

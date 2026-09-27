@@ -138,6 +138,6 @@ class JwtAuthenticationIntegrationTest extends IntegrationTestSupport {
     return new tools.jackson.databind.ObjectMapper()
         .readTree(result.getResponse().getContentAsString())
         .path("accessToken")
-        .asText();
+        .asString();
   }
 }

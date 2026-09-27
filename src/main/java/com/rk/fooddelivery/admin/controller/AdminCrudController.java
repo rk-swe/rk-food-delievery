@@ -2,7 +2,6 @@ package com.rk.fooddelivery.admin.controller;
 
 import com.rk.fooddelivery.admin.service.AdminCrudService;
 import com.rk.fooddelivery.auth.*;
-import com.rk.fooddelivery.city.dto.CityDtos.*;
 import com.rk.fooddelivery.common.web.PageResponse;
 import com.rk.fooddelivery.delivery.dto.PartnerDtos.*;
 import com.rk.fooddelivery.restaurant.dto.RestaurantDtos.*;
@@ -26,37 +25,6 @@ public class AdminCrudController {
 
   private UUID admin() {
     return current.requireRole(Role.ADMIN).id();
-  }
-
-  @PostMapping("/cities")
-  @ResponseStatus(HttpStatus.CREATED)
-  CityResponse createCity(@Valid @RequestBody CityRequest r) {
-    return service.createCity(admin(), r);
-  }
-
-  @GetMapping("/cities")
-  PageResponse<CityResponse> cities(
-      @RequestParam(defaultValue = "0") @Min(0) int page,
-      @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
-    admin();
-    return service.cities(false, page, size);
-  }
-
-  @GetMapping("/cities/{id}")
-  CityResponse city(@PathVariable UUID id) {
-    admin();
-    return service.city(id);
-  }
-
-  @PatchMapping("/cities/{id}")
-  CityResponse patchCity(@PathVariable UUID id, @Valid @RequestBody CityPatch r) {
-    return service.patchCity(admin(), id, r);
-  }
-
-  @DeleteMapping("/cities/{id}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  void deactivateCity(@PathVariable UUID id) {
-    service.deactivateCity(admin(), id);
   }
 
   @PostMapping("/restaurants")

@@ -41,7 +41,7 @@ class AdminCrudIntegrationTest extends IntegrationTestSupport {
         "{\"name\":\"Hyderabad\",\"state\":\"Telangana\",\"country\":\"India\",\"currency\":\"INR\"}";
     String cityResult =
         mvc.perform(
-                post("/api/admin/cities")
+                post("/api/cities")
                     .with(httpBasic("admin", "secret"))
                     .contentType("application/json")
                     .content(cityBody))
@@ -52,7 +52,7 @@ class AdminCrudIntegrationTest extends IntegrationTestSupport {
             .getContentAsString();
     city = UUID.fromString(cityResult.replaceAll(".*\\\"id\\\":\\\"([^\\\"]+).*", "$1"));
     mvc.perform(
-            post("/api/admin/cities")
+            post("/api/cities")
                 .with(httpBasic("admin", "secret"))
                 .contentType("application/json")
                 .content(cityBody))
@@ -119,13 +119,13 @@ class AdminCrudIntegrationTest extends IntegrationTestSupport {
   @Test
   void validatesCoordinatesAndProtectsAdminResourcesAndHistory() throws Exception {
     mvc.perform(
-            post("/api/admin/cities")
+            post("/api/cities")
                 .with(httpBasic("owner", "secret"))
                 .contentType("application/json")
                 .content("{}"))
         .andExpect(status().isForbidden());
     mvc.perform(
-            post("/api/admin/cities")
+            post("/api/cities")
                 .with(httpBasic("admin", "secret"))
                 .contentType("application/json")
                 .content("{\"name\":\"Missing fields\"}"))
@@ -158,17 +158,17 @@ class AdminCrudIntegrationTest extends IntegrationTestSupport {
         "INSERT INTO restaurants (name,owner_id,cost_for_two,diet_type,address_line_1,city_id,location) VALUES ('R',?,1,'Veg','x',?,ST_GeogFromText('POINT(1 1)'))",
         owner,
         busy);
-    mvc.perform(delete("/api/admin/cities/" + busy).with(httpBasic("admin", "secret")))
+    mvc.perform(delete("/api/cities/" + busy).with(httpBasic("admin", "secret")))
         .andExpect(status().isConflict());
     UUID empty =
         jdbc.queryForObject(
             "INSERT INTO cities (name,state,country,currency) VALUES ('Empty','S','India','INR') RETURNING id",
             UUID.class);
-    mvc.perform(delete("/api/admin/cities/" + empty).with(httpBasic("admin", "secret")))
+    mvc.perform(delete("/api/cities/" + empty).with(httpBasic("admin", "secret")))
         .andExpect(status().isNoContent());
-    mvc.perform(delete("/api/admin/cities/" + empty).with(httpBasic("admin", "secret")))
+    mvc.perform(delete("/api/cities/" + empty).with(httpBasic("admin", "secret")))
         .andExpect(status().isNoContent());
-    mvc.perform(delete("/api/admin/cities/" + UUID.randomUUID()).with(httpBasic("admin", "secret")))
+    mvc.perform(delete("/api/cities/" + UUID.randomUUID()).with(httpBasic("admin", "secret")))
         .andExpect(status().isNotFound());
   }
 

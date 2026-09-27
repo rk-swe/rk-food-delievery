@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -108,7 +109,7 @@ class SecurityIntegrationTest extends IntegrationTestSupport {
   @Test
   void customerCannotAccessAdminPath() throws Exception {
     mockMvc
-        .perform(get("/api/admin/cities").with(httpBasic("customer-login", "customer-password")))
+        .perform(post("/api/cities").with(httpBasic("customer-login", "customer-password")))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.status").value(403))
         .andExpect(jsonPath("$.code").value("FORBIDDEN"))

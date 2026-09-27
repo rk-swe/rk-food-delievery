@@ -1,6 +1,11 @@
 # Food delivery assignment design
 
-Status: proposed design for review; implementation has not started.
+Status: original approved assignment design; tasks 1–3 have implementation
+evidence in the execution ledger. The user subsequently requested resource-based
+REST APIs and Hibernate persistence. See the
+[REST/JPA revision proposal](2026-09-28-rest-jpa-design.md), pending detailed
+review, before implementing further features. Its approved version will
+supersede conflicting route/persistence examples here, preserving business rules.
 
 ## Goal and assignment constraints
 
@@ -354,13 +359,15 @@ Fetch only the two public pages and minimal lookup labels required for this data
 no full catalog crawl, reviews, images or customer records. Use test-only extra
 owners/users for authorization and load tests; retain six default accounts.
 
-## Existing repository gaps
+## Original repository gaps (historical baseline)
 
-Only application bootstrap, V1–V11 migrations and schema tests currently exist.
-README.md and AGENTS.md are empty. No functional API/auth/event code exists yet.
-The AMQP/security/validation/JPA dependencies are already declared. Schema needs
-credentials/activity, order states/version/deadlines, item-name snapshots,
-idempotency, partner presence/offers, refund tracking and outbox/inbox tables.
+At initial planning, only application bootstrap, V1–V11 migrations and schema
+tests existed. README.md and AGENTS.md were empty; API/auth/event implementation
+was absent. AMQP/security/validation/JPA dependencies were already declared.
+Tasks 1–3 have since added API error handling, authentication, catalog/admin CRUD,
+partner presence and migrations V12–V13. Remaining schema work includes order
+states/version/deadlines, item-name snapshots, idempotency, delivery offers,
+refund tracking and outbox/inbox tables. Consult the ledger for verification.
 Update docs/database.md: its current wording about payment in one transaction
 and publishing after commit is too broad for asynchronous provider results and
 does not cover durable event publication. Update docs/tables.md to match actual

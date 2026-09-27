@@ -1,19 +1,34 @@
 # Food Delivery Assignment Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. This is a proposed plan, not authorization to implement it now.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Tasks 1–3 have implementation evidence in the ledger. The user has requested a REST/Hibernate revision before further feature work; read the revision notice below before executing task 4. Checkboxes alone are not an execution-status source.
+
+## REST/Hibernate revision — implementation plan review pending
+
+Read [Resource APIs and Hibernate persistence](../specs/2026-09-28-rest-jpa-design.md).
+The user requested resource-based routes and Swagger organization, Hibernate for
+ordinary persistence, and consistent guidance for future agents. The current
+code still uses the old routes and JDBC persistence. Do not continue task 4
+until the revision design and [prerequisite plan](2026-09-28-rest-jpa-refactor.md)
+have been reviewed and tasks 3.1–3.5 completed. Preserve existing task numbers, commits,
+verification evidence and the ledger; do not mark tasks 1–3 unimplemented.
+
+The linked proposal defines replacement routes and permission scopes for current
+features and future workflow resources. After approval it overrides conflicting
+endpoint examples below and in the preflight rulings. The assignment's locking,
+idempotency, payment, stock and event invariants remain unchanged.
 
 **Goal:** Complete the assignment with demonstrable atomic checkout, safe delivery assignment, durable asynchronous notifications, and the requested REST flows.
 
 **Architecture:** One Spring Boot application with PostgreSQL/PostGIS and a local RabbitMQ broker. Database transactions protect business state; a small transactional outbox connects committed changes to independent in-process queue listeners.
 
-**Tech Stack:** Existing Java 25, Spring Boot 4.1.1, Maven wrapper, Flyway, JPA/JdbcTemplate, Spring Security/Validation/AMQP, PostgreSQL/PostGIS, RabbitMQ, JUnit and Awaitility for bounded eventual assertions.
+**Target Tech Stack:** Existing Java 25, Spring Boot 4.1.1, Maven wrapper, Flyway, Hibernate/Spring Data JPA with narrowly scoped native queries, Spring Security/Validation/AMQP, PostgreSQL/PostGIS, RabbitMQ, JUnit and Awaitility for bounded eventual assertions.
 
 **Spec:** [Assignment design](../specs/2026-09-28-assignment-design.md). Read its state machine and assumptions before executing any task.
 
 ## Global constraints
 
 - Keep Java 25 and Spring Boot 4.1.1 from the existing pom unless the initial build proves a compatibility issue.
-- Add new migrations after V11; never rewrite applied migrations.
+- Preserve applied V1–V13; allocate subsequent schema changes the next unused version; never rewrite applied migrations.
 - One Spring Boot JVM; no separate worker services, frontend, deployment or CI work.
 - All money uses BigDecimal and a documented two-decimal rounding rule.
 - Delivery is at least once; database effects are idempotent.
@@ -39,7 +54,7 @@ src/main/java/com/rk/fooddelivery/
   common/error/            ApiExceptionHandler, DomainException
   common/web/              PageResponse
   auth/                    CurrentUser, UserDetailsService adapter
-  user/{entity,repository,service,dto}/
+  user/{controller,entity,repository,service,dto}/
   city/{controller,service,repository,entity,dto}/
   restaurant/{controller,service,repository,entity,dto}/
   menu/{controller,service,repository,entity,dto}/
@@ -51,14 +66,16 @@ src/main/java/com/rk/fooddelivery/
   event/{outbox,inbox,listener,dto}/
   notification/            Customer/Restaurant/PartnerNotificationListener
   seed/                    DemoDataSeeder
-src/main/resources/db/migration/  V12 onward, one migration per schema change
+src/main/resources/db/migration/  V1–V13 preserved; next unused version per change
 src/test/java/com/rk/fooddelivery/ feature tests and integration support
 scripts/demo/              concurrent request scripts and SQL assertions
 docs/demo/                 API collection, video script, reference data sources
 ```
 
-Use repositories with native SQL/JdbcTemplate for spatial and guarded updates;
-do not force awkward spatial/locking logic into derived JPA method names. Keep
+Use Hibernate/Spring Data JPA for ordinary CRUD, lookup and pagination. Reserve
+native queries for spatial and guarded atomic operations; document any remaining
+JdbcTemplate exception inside a feature repository. Do not force awkward
+spatial/locking logic into derived JPA method names. Keep
 entities, HTTP DTOs and events distinct. Paths below are relative to the above
 Java package unless given in full. Each named service has one owning task.
 
@@ -70,6 +87,12 @@ and typed payload. `OutboxService.append(DomainEvent): void` joins its caller's
 transaction. Use injected `Clock` for deadlines and tests.
 
 ## Commit-sized execution steps
+
+For every Maven invocation set `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home`.
+Tests use only database `fooddelivery_assignment_test` and RabbitMQ vhost
+`fooddelivery_assignment_test`. Each task runs its focused command **and** full
+`./mvnw test` before commit, including tasks whose checklist below only names the
+focused command. Keep the existing progress ledger current.
 
 For every task: write the named behavior tests, run them and observe the expected
 failure, implement the listed change, rerun the tests, then commit only that task's
@@ -114,6 +137,21 @@ Produces city/restaurant/partner create/list/get/patch/deactivate APIs and
 - [ ] Run `./mvnw -Dtest=AdminCrudIntegrationTest,SecurityIntegrationTest test`; expected zero failures.
 - [ ] Commit `feat: manage cities restaurants and delivery partners`.
 
+### 3.1–3.5. Resource REST and Hibernate prerequisites
+
+Read and execute [the REST/JPA refactor plan](2026-09-28-rest-jpa-refactor.md)
+after user review. Its tasks are independently verified commits:
+
+- 3.1: Hibernate users/credentials and real PostGIS mapping proof.
+- 3.2: City/cuisine resource services and visibility.
+- 3.3: Restaurant resources, ownership and transactional hours.
+- 3.4: Partner CRUD/presence and removal of shared admin persistence.
+- 3.5: OpenAPI Basic authentication, full resource contract and guidance.
+
+Record these in the existing ledger without renumbering tasks 1–13. The original
+completed task 3 is historical; its caller-ID presence signature is superseded
+by principal-derived self service methods in prerequisite 3.4.
+
 ### 4. Menu/category management and discovery
 
 Files: menu feature classes, `restaurant/repository/RestaurantSearchRepository.java`,
@@ -125,7 +163,7 @@ and `MenuService.search(UUID, MenuSearchRequest): PageResponse<MenuItemResponse>
 - [ ] Test owner isolation, cross-restaurant category rejection, safe concurrent stock edits, availability/deactivation, positive quantities and category counts.
 - [ ] Implement category/item CRUD and stock delta endpoint; preserve FK history and update category counts transactionally on moves/deactivation.
 - [ ] Test combined name/cuisine/diet/cost filters, pagination tiebreakers, missing coordinates, known near/far points, radius boundary and item price/category filtering.
-- [ ] Implement SQL PostGIS filtering/sorting and parameterized text search. Test that cuisine joins do not duplicate restaurant results. Item cuisine/distance filters are intentionally absent.
+- [ ] Implement PostGIS filtering/sorting behind the custom RestaurantSearchRepository; use JPA/JPQL for ordinary menu queries and parameterized text filters. Test that cuisine joins do not duplicate restaurant results. Item cuisine/distance filters are intentionally absent.
 - [ ] Run `./mvnw -Dtest=MenuManagementIntegrationTest,RestaurantSearchIntegrationTest,MenuSearchIntegrationTest test`; expected zero failures.
 - [ ] Commit `feat: manage menus and search restaurant catalogs`.
 
@@ -170,7 +208,7 @@ and `StockReservationService.releaseOnce(UUID orderId): void` within a caller tr
 - [ ] Test rollback after one of several item decrements and after order insert: stock/cart unchanged; zero order/payment/event artifacts.
 - [ ] Test 20 simultaneous distinct-customer checkouts against stock 5: exactly 5 successes, 15 stock conflicts, final stock 0, five complete order/payment groups. Use separate connections and a start barrier.
 - [ ] Implement short transaction, sorted guarded updates, immutable server-priced snapshots, Pending payment, deadline, outbox and cart clearing; add idempotency hash/unique key.
-- [ ] Implement actor/operation-scoped Idempotency-Key storage and original response replay for successful action POSTs; subsequent tasks apply it to their actions. Test changed-body conflict and concurrent duplicate behavior.
+- [ ] Implement actor/resource/operation-scoped Idempotency-Key storage and original response replay for successful action POSTs; subsequent tasks apply it to their actions. Test changed-body conflict and concurrent duplicate behavior.
 - [ ] Test simultaneous same-key retries => one order and one decrement; changed payload => 409; retry after cart clearing returns original response; overnight opening-hours validation.
 - [ ] Run `./mvnw -Dtest=CheckoutConcurrencyTest,CartIntegrationTest test`; expected zero failures, no negative stock or partial orders.
 - [ ] Commit `feat: atomically reserve stock and create idempotent orders`.
@@ -198,7 +236,7 @@ Produces `accept(UUID ownerId, UUID orderId)`, `reject(UUID, UUID, String reason
 `startPreparation(UUID, UUID)`, `markReady(UUID, UUID)`, each returning OrderResponse.
 
 - [ ] Test unpaid acceptance denied, other owner denied, legal path Placed/Accepted/Preparing/Ready, invalid jumps, accept/reject race and repeated rejection without double stock release/refund.
-- [ ] Implement guarded transitions with version increment and outbox. Add own-order lists and customer tracking including payment/refund, restaurant response and assignment separately. Require/replay action Idempotency-Key.
+- [ ] Expose owner lists at GET `/api/restaurants/{restaurantId}/orders` with ownership checks and customer history at GET `/api/orders` scoped to the principal. Use POST `/api/orders/{id}/restaurant-decisions` with a validated accept/reject DTO and rejection reason; POST `/api/orders/{id}/preparation` and `/readiness` model subsequent transitions. Implement guarded transitions with version increment and outbox. Add own-order lists and customer tracking including payment/refund, restaurant response and assignment separately. Require/replay action Idempotency-Key.
 - [ ] Add RestaurantResponseDelayJob with injected Clock: Awaiting response becomes Delayed after 5 minutes, order stays Placed, no refund or stock release. Test no response, late accept/reject, decision-vs-delay race and one notification per transition.
 - [ ] Run `./mvnw -Dtest=OrderLifecycleIntegrationTest,PaymentIntegrationTest test`; expected zero failures.
 - [ ] Commit `feat: manage restaurant order lifecycle and tracking`.
@@ -216,9 +254,9 @@ Produces `createOffers(UUID orderId): void`, `listMine(UUID partnerId): List<Del
 - [ ] Verify distance is partner-to-restaurant pickup, not partner-to-customer; ratings do not influence matching. Use the user-confirmed policy: notify nearby eligible partners; first valid acceptance wins.
 - [ ] Implement discovery from OrderAccepted, persistent offers/round/expiry and partner notification events; no assignment during mere notification.
 - [ ] Test two partners on one order => one winner; one partner on two orders => one winner; repeated winning claim idempotent; acceptance vs offer expiry => one valid final outcome; stale-round acceptance rejected.
-- [ ] Implement order-then-partner locking, conditional claim, partial unique active-partner index, availability and offer invalidation in one transaction; 409 for losers.
+- [ ] Expose offer acceptance at POST `/api/delivery-offers/{id}/acceptances`, retaining actor/resource-scoped Idempotency-Key and offer-round validation. Implement order-then-partner locking, conditional claim, partial unique active-partner index, availability and offer invalidation in one transaction; 409 for losers.
 - [ ] Persist No partners available when discovery is empty and Offers unanswered after all offers expire. Keep cooking/payment/stock unchanged; notify on status changes.
-- [ ] Add owner/admin POST /orders/{id}/retry-assignment with Idempotency-Key: one new round and DeliveryAssignmentRequested event, fresh eligibility query, only after prior offers expire. Test duplicate retry, newly available partner, stale offer round and delayed events against completed orders. No automatic dispatch cancellation/refund.
+- [ ] Add owner/admin POST `/api/orders/{id}/assignment-attempts` with Idempotency-Key: one new round and DeliveryAssignmentRequested event, fresh eligibility query, only after prior offers expire. Test duplicate retry, newly available partner, stale offer round and delayed events against completed orders. No automatic dispatch cancellation/refund.
 - [ ] Run `./mvnw -Dtest=DeliveryAssignmentConcurrencyTest,OrderLifecycleIntegrationTest test`; expected zero failures across repeated coordinated races.
 - [ ] Commit `feat: offer nearby deliveries and assign a single winning partner`.
 
@@ -230,9 +268,9 @@ Produces `pickup(UUID partnerId, UUID orderId): OrderResponse`, `deliver(UUID, U
 `ReviewService.submit(UUID customerId, UUID orderId, ReviewRequest): ReviewResponse`.
 
 - [ ] Test pickup requires ready order + assigned partner, unauthorized transitions denied, deliver requires pickup, repeated delivery cannot free a newly occupied slot.
-- [ ] Implement transitions, notifications and atomic slot release; test assignment-before-ready and ready-before-assignment paths.
+- [ ] Expose POST `/api/orders/{id}/pickup` and `/api/orders/{id}/delivery` with assigned-partner checks and idempotency. Implement transitions, notifications and atomic slot release; test assignment-before-ready and ready-before-assignment paths.
 - [ ] Test rating before delivery denied, other customer denied, stars bounds, review length, one review/order and concurrent restaurant aggregate updates.
-- [ ] Implement order/partner review and correct restaurant sum/count update. Do not invent per-item feedback.
+- [ ] Expose POST `/api/orders/{id}/reviews` for the owning customer. Implement order/partner review and correct restaurant sum/count update. Do not invent per-item feedback.
 - [ ] Run `./mvnw -Dtest=DeliveryLifecycleIntegrationTest,ReviewIntegrationTest test`; expected zero failures.
 - [ ] Commit `feat: complete deliveries and collect verified order reviews`.
 

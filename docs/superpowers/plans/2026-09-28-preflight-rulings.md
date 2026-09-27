@@ -1,5 +1,11 @@
 # Astra preflight rulings
 
+Revision notice: the user has requested resource-oriented routes and Hibernate.
+Read [the REST/JPA proposal](../specs/2026-09-28-rest-jpa-design.md) before further
+implementation. Its route replacements are pending review; once approved,
+assignment-attempt resources supersede the retry-assignment URL below. Locking,
+idempotency and business-state rulings remain applicable.
+
 Reviewed with `gpt-6-astra` before implementation. These resolve omissions in the
 approved design/plan without expanding its scope. Execution uses `gpt-5.6-terra`.
 

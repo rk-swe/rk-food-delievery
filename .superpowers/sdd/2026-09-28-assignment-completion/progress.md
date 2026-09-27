@@ -1,5 +1,19 @@
 # SDD ledger — plan: docs/superpowers/plans/2026-09-28-assignment-completion.md
 
+2026-09-28 REST/Hibernate revision: user requested resource-oriented APIs and
+Hibernate where practical, plus plan/docs guidance for future AI work. Added
+`docs/superpowers/specs/2026-09-28-rest-jpa-design.md` for detailed review and
+linked it from AGENTS, README, the original spec, plan and preflight rulings.
+Implementation is pending design approval; no runtime code changed. Complete
+the prerequisite refactor before resuming task 4. Preserve tasks 1–3 evidence.
+
+2026-09-28 planning update: at the user's request, gpt-6-astra prepared
+`docs/superpowers/plans/2026-09-28-rest-jpa-refactor.md` (tasks 3.1–3.5) and
+integrated it into the original plan. gpt-5.6-terra is the selected implementation
+model. User-requested normal/fast speed modes cannot be set by the agent tool;
+no speed-tier change claimed. Plan review is pending per writing-plans handoff.
+Only documentation changed; no Maven suite run for this planning-only change.
+
 Task 1: baseline `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home DB_URL=jdbc:postgresql://localhost:5432/fooddelivery_assignment_test DB_USERNAME=abcom DB_PASSWORD='' ./mvnw test` → 26 tests, 0 failures/errors.
 Task 1: Ruling: task-start/task-done scripts are not executable in the checked-in skill copy, and their task extractor expects `Task N` headings while this approved plan uses numbered list headings — recorded task evidence manually; the implementation and verification sequence remains unchanged.
 Task 1: Ruling: all Spring integration tests activate the `test` profile, whose datasource defaults only to `fooddelivery_assignment_test`; it does not fall back to `DB_URL`. Reusable destructive cleanup refuses any database whose name does not end with `_assignment_test`.

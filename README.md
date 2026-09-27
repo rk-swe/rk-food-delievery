@@ -1,5 +1,34 @@
 # Food Delivery Assignment
 
+## Architecture revision
+
+The user requested resource-based REST APIs and Hibernate persistence. The
+[revision design](docs/superpowers/specs/2026-09-28-rest-jpa-design.md) documents
+the proposed URL mappings, authorization, Swagger grouping and JPA/native SQL
+boundaries. Astra prepared the
+[implementation plan](docs/superpowers/plans/2026-09-28-rest-jpa-refactor.md),
+with tasks 3.1–3.5 preceding original task 4. Plan review and implementation are pending: the current
+application still exposes the existing admin-prefixed routes and uses JDBC.
+Follow [AGENTS.md](AGENTS.md) and the updated assignment plan before continuing
+feature development. This notice does not claim the proposed endpoints exist.
+
+The target Java layout groups code by feature:
+
+```text
+com.rk.fooddelivery/
+  auth/          Authentication and current principal
+  user/          User and credential entities/repositories; account API
+  city/          City controller, service, repository, entity and DTOs
+  restaurant/    Restaurant, cuisine and opening-hours components
+  delivery/      Partner administration and self-presence components
+  config/        Security and OpenAPI configuration
+  common/        Shared errors and pagination
+```
+
+Feature packages contain `controller`, `service`, `repository`, `entity` and
+`dto` subpackages where needed. The refactor replaces the combined admin CRUD
+classes with feature-owned components. It remains one application and database.
+
 ## Local verification
 
 Use Java 25 and the dedicated local PostGIS database only. Do not point these

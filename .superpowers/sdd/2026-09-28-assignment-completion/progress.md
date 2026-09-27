@@ -89,6 +89,33 @@ ran 11 tests with 0 failures and 0 errors. The user directed that obsolete
 Basic-auth and legacy-route tests be removed and that the historical full suite
 not be run for this completion.
 
+## Task 6 — durable events and independent notification listeners
+
+Task 6: RED observed with the dedicated PostgreSQL/PostGIS database and RabbitMQ
+test vhost: `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
+TEST_DB_URL=jdbc:postgresql://localhost:5432/fooddelivery_assignment_test
+RABBITMQ_HOST=localhost RABBITMQ_VHOST=fooddelivery_assignment_test
+./mvnw -Dtest=EventDeliveryIntegrationTest test` initially failed at test compilation
+because `DomainEvent` and `OutboxService` did not exist. A later focused RED exposed
+the PostgreSQL `jsonb`/`varchar` binding mismatch; the outbox payload is now mapped
+with Hibernate JSON support.
+
+Task 6: added V16 durable outbox/inbox/notification-delivery schema, allowlisted
+event envelope, transactional Hibernate outbox append, `FOR UPDATE SKIP LOCKED`
+publisher batch, persistent topic routing with confirms/returns, notification
+fan-out, consumer-scoped `ON CONFLICT DO NOTHING` inbox deduplication, and three
+attempt retry-to-DLQ listener configuration. Assignment/refund queues are routed but
+have no placeholder consumers. Shared test cleanup now truncates the Task 6 tables.
+
+Task 6: verification before commit: `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
+TEST_DB_URL=jdbc:postgresql://localhost:5432/fooddelivery_assignment_test
+RABBITMQ_HOST=localhost RABBITMQ_VHOST=fooddelivery_assignment_test
+./mvnw -Dtest=EventDeliveryIntegrationTest test` → 3 tests, 0 failures/errors;
+`JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
+TEST_DB_URL=jdbc:postgresql://localhost:5432/fooddelivery_assignment_test
+RABBITMQ_HOST=localhost RABBITMQ_VHOST=fooddelivery_assignment_test ./mvnw test`
+→ 66 tests, 0 failures/errors/skips.
+
 Task 4: RED observed with `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ./mvnw -Dtest=MenuManagementIntegrationTest,RestaurantSearchIntegrationTest test`: 3 failures — absent menu category/item and stock-adjustment routes returned 404, and restaurant search ignored combined filters (returned 2 instead of 1).
 Task 4: added Hibernate menu category/item repositories and feature service/controller DTO boundaries, owner checks, category count maintenance on create/move, locked stock deltas, and available-menu search. Added a native PostGIS-backed `RestaurantSearchRepository` for database-filtered name/cuisine/diet/cost/radius catalog search; ordinary menu filtering stays JPQL. Tests cover owner/cross-restaurant rejection, quantity boundaries, item search and duplicate-safe cuisine filtering.
 Task 4: verification before commit: `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ./mvnw -Dtest=MenuManagementIntegrationTest,RestaurantSearchIntegrationTest,MenuSearchIntegrationTest test` → 4 tests, 0 failures/errors; `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ./mvnw test` → 47 tests, 0 failures/errors. Dedicated `fooddelivery_assignment_test` PostgreSQL/PostGIS database and test RabbitMQ vhost were held exclusively for the Task 4 runs. Commit: `84071d6 feat: manage menus and search restaurant catalogs`. Next ready task: 5.

@@ -21,7 +21,8 @@ public abstract class IntegrationTestSupport {
 
   private static final String CLEAR_DATABASE =
       """
-        TRUNCATE TABLE order_items, payments, orders, cart_items, carts, menu_items,
+        TRUNCATE TABLE notification_deliveries, inbox_entries, outbox_events,
+        order_items, payments, orders, cart_items, carts, menu_items,
         menu_categories, restaurant_cuisines, restaurant_timings, restaurants, cuisines,
         coupons, cities, users RESTART IDENTITY CASCADE
         """;

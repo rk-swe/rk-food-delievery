@@ -28,33 +28,122 @@ public class RabbitConfig {
   public static final String ASSIGNMENT_QUEUE = "fooddelivery.assignment";
   public static final String REFUND_QUEUE = "fooddelivery.refund";
 
-  @Bean TopicExchange eventExchange() { return new TopicExchange(EVENT_EXCHANGE, true, false); }
-  @Bean DirectExchange deadLetterExchange() { return new DirectExchange(DEAD_LETTER_EXCHANGE, true, false); }
+  @Bean
+  TopicExchange eventExchange() {
+    return new TopicExchange(EVENT_EXCHANGE, true, false);
+  }
 
-  @Bean Queue customerNotificationQueue() { return retryQueue(CUSTOMER_QUEUE); }
-  @Bean Queue restaurantNotificationQueue() { return retryQueue(RESTAURANT_QUEUE); }
-  @Bean Queue partnerNotificationQueue() { return retryQueue(PARTNER_QUEUE); }
-  @Bean Queue assignmentQueue() { return retryQueue(ASSIGNMENT_QUEUE); }
-  @Bean Queue refundQueue() { return retryQueue(REFUND_QUEUE); }
+  @Bean
+  DirectExchange deadLetterExchange() {
+    return new DirectExchange(DEAD_LETTER_EXCHANGE, true, false);
+  }
 
-  @Bean Queue customerNotificationDlq() { return QueueBuilder.durable(CUSTOMER_QUEUE + ".dlq").build(); }
-  @Bean Queue restaurantNotificationDlq() { return QueueBuilder.durable(RESTAURANT_QUEUE + ".dlq").build(); }
-  @Bean Queue partnerNotificationDlq() { return QueueBuilder.durable(PARTNER_QUEUE + ".dlq").build(); }
-  @Bean Queue assignmentDlq() { return QueueBuilder.durable(ASSIGNMENT_QUEUE + ".dlq").build(); }
-  @Bean Queue refundDlq() { return QueueBuilder.durable(REFUND_QUEUE + ".dlq").build(); }
+  @Bean
+  Queue customerNotificationQueue() {
+    return retryQueue(CUSTOMER_QUEUE);
+  }
 
-  @Bean Binding customerNotificationBinding() { return bindAll(CUSTOMER_QUEUE); }
-  @Bean Binding restaurantNotificationBinding() { return bindAll(RESTAURANT_QUEUE); }
-  @Bean Binding partnerNotificationBinding() { return bindAll(PARTNER_QUEUE); }
-  @Bean Binding assignmentAcceptedBinding() { return BindingBuilder.bind(assignmentQueue()).to(eventExchange()).with("order.accepted"); }
-  @Bean Binding assignmentRequestedBinding() { return BindingBuilder.bind(assignmentQueue()).to(eventExchange()).with("delivery.assignment.requested"); }
-  @Bean Binding refundBinding() { return BindingBuilder.bind(refundQueue()).to(eventExchange()).with("payment.refund.requested"); }
+  @Bean
+  Queue restaurantNotificationQueue() {
+    return retryQueue(RESTAURANT_QUEUE);
+  }
 
-  @Bean Binding customerDlqBinding() { return dlq(CUSTOMER_QUEUE); }
-  @Bean Binding restaurantDlqBinding() { return dlq(RESTAURANT_QUEUE); }
-  @Bean Binding partnerDlqBinding() { return dlq(PARTNER_QUEUE); }
-  @Bean Binding assignmentDlqBinding() { return dlq(ASSIGNMENT_QUEUE); }
-  @Bean Binding refundDlqBinding() { return dlq(REFUND_QUEUE); }
+  @Bean
+  Queue partnerNotificationQueue() {
+    return retryQueue(PARTNER_QUEUE);
+  }
+
+  @Bean
+  Queue assignmentQueue() {
+    return retryQueue(ASSIGNMENT_QUEUE);
+  }
+
+  @Bean
+  Queue refundQueue() {
+    return retryQueue(REFUND_QUEUE);
+  }
+
+  @Bean
+  Queue customerNotificationDlq() {
+    return QueueBuilder.durable(CUSTOMER_QUEUE + ".dlq").build();
+  }
+
+  @Bean
+  Queue restaurantNotificationDlq() {
+    return QueueBuilder.durable(RESTAURANT_QUEUE + ".dlq").build();
+  }
+
+  @Bean
+  Queue partnerNotificationDlq() {
+    return QueueBuilder.durable(PARTNER_QUEUE + ".dlq").build();
+  }
+
+  @Bean
+  Queue assignmentDlq() {
+    return QueueBuilder.durable(ASSIGNMENT_QUEUE + ".dlq").build();
+  }
+
+  @Bean
+  Queue refundDlq() {
+    return QueueBuilder.durable(REFUND_QUEUE + ".dlq").build();
+  }
+
+  @Bean
+  Binding customerNotificationBinding() {
+    return bindAll(CUSTOMER_QUEUE);
+  }
+
+  @Bean
+  Binding restaurantNotificationBinding() {
+    return bindAll(RESTAURANT_QUEUE);
+  }
+
+  @Bean
+  Binding partnerNotificationBinding() {
+    return bindAll(PARTNER_QUEUE);
+  }
+
+  @Bean
+  Binding assignmentAcceptedBinding() {
+    return BindingBuilder.bind(assignmentQueue()).to(eventExchange()).with("order.accepted");
+  }
+
+  @Bean
+  Binding assignmentRequestedBinding() {
+    return BindingBuilder.bind(assignmentQueue())
+        .to(eventExchange())
+        .with("delivery.assignment.requested");
+  }
+
+  @Bean
+  Binding refundBinding() {
+    return BindingBuilder.bind(refundQueue()).to(eventExchange()).with("payment.refund.requested");
+  }
+
+  @Bean
+  Binding customerDlqBinding() {
+    return dlq(CUSTOMER_QUEUE);
+  }
+
+  @Bean
+  Binding restaurantDlqBinding() {
+    return dlq(RESTAURANT_QUEUE);
+  }
+
+  @Bean
+  Binding partnerDlqBinding() {
+    return dlq(PARTNER_QUEUE);
+  }
+
+  @Bean
+  Binding assignmentDlqBinding() {
+    return dlq(ASSIGNMENT_QUEUE);
+  }
+
+  @Bean
+  Binding refundDlqBinding() {
+    return dlq(REFUND_QUEUE);
+  }
 
   @Bean
   SimpleRabbitListenerContainerFactory eventRabbitListenerContainerFactory(
@@ -85,6 +174,11 @@ public class RabbitConfig {
         .build();
   }
 
-  private Binding bindAll(String queue) { return BindingBuilder.bind(new Queue(queue)).to(eventExchange()).with("#"); }
-  private Binding dlq(String queue) { return BindingBuilder.bind(new Queue(queue + ".dlq")).to(deadLetterExchange()).with(queue); }
+  private Binding bindAll(String queue) {
+    return BindingBuilder.bind(new Queue(queue)).to(eventExchange()).with("#");
+  }
+
+  private Binding dlq(String queue) {
+    return BindingBuilder.bind(new Queue(queue + ".dlq")).to(deadLetterExchange()).with(queue);
+  }
 }

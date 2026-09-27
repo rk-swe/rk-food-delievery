@@ -21,7 +21,10 @@ public class MeController {
   }
 
   @GetMapping
-  @Operation(operationId = "getMyAccount", summary = "Get the current account", description = "Available to every authenticated account.")
+  @Operation(
+      operationId = "getMyAccount",
+      summary = "Get the current account",
+      description = "Available to every authenticated account.")
   MeResponse me() {
     AuthenticatedUser user = currentUser.require();
     return new MeResponse(

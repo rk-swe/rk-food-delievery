@@ -1,8 +1,8 @@
 package com.rk.fooddelivery.config;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
-import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import java.util.List;
@@ -38,9 +38,6 @@ public class OpenApiConfig {
 
   @Bean
   GroupedOpenApi api() {
-    return GroupedOpenApi.builder()
-        .group("api")
-        .pathsToMatch("/api/**")
-        .build();
+    return GroupedOpenApi.builder().group("api").pathsToMatch("/api/**").build();
   }
 }

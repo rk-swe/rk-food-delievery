@@ -19,6 +19,7 @@ public class OutboxPublisher {
   private static final Logger log = LoggerFactory.getLogger(OutboxPublisher.class);
   private final OutboxEventRepository events;
   private final RabbitTemplate rabbit;
+
   public OutboxPublisher(OutboxEventRepository events, RabbitTemplate rabbit) {
     this.events = events;
     this.rabbit = rabbit;
@@ -34,7 +35,14 @@ public class OutboxPublisher {
     for (OutboxEvent stored : events.lockPendingBatch()) {
       try {
         DomainEventType type = DomainEventType.valueOf(stored.eventType());
-        DomainEvent event = new DomainEvent(stored.id(), type, stored.aggregateId(), stored.aggregateVersion(), stored.occurredAt(), stored.payload());
+        DomainEvent event =
+            new DomainEvent(
+                stored.id(),
+                type,
+                stored.aggregateId(),
+                stored.aggregateVersion(),
+                stored.occurredAt(),
+                stored.payload());
         CorrelationData correlation = new CorrelationData(stored.id().toString());
         rabbit.convertAndSend(
             RabbitConfig.EVENT_EXCHANGE,
@@ -51,10 +59,18 @@ public class OutboxPublisher {
           throw new IllegalStateException("Broker rejected event: " + confirm.getReason());
         }
         stored.publishedAt(Instant.now());
-        log.info("eventId={} aggregateId={} version={} status=PUBLISHED", stored.id(), stored.aggregateId(), stored.aggregateVersion());
+        log.info(
+            "eventId={} aggregateId={} version={} status=PUBLISHED",
+            stored.id(),
+            stored.aggregateId(),
+            stored.aggregateVersion());
       } catch (Exception exception) {
         stored.failed(exception.getMessage());
-        log.warn("eventId={} aggregateId={} status=PUBLISH_FAILED", stored.id(), stored.aggregateId(), exception);
+        log.warn(
+            "eventId={} aggregateId={} status=PUBLISH_FAILED",
+            stored.id(),
+            stored.aggregateId(),
+            exception);
       }
     }
   }

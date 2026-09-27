@@ -4,7 +4,9 @@ import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/** PostgreSQL order occupancy is retained as a narrow native query until lifecycle entities exist. */
+/**
+ * PostgreSQL order occupancy is retained as a narrow native query until lifecycle entities exist.
+ */
 @Repository
 public class PartnerWorkloadRepository {
   private final JdbcTemplate jdbc;

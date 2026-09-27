@@ -11,17 +11,32 @@ import java.util.UUID;
 @Table(name = "notification_deliveries")
 class NotificationDelivery {
   @Id private UUID id = UUID.randomUUID();
-  @Column(nullable = false) private String recipient;
-  @Column(name = "event_id", nullable = false) private UUID eventId;
-  @Column(name = "aggregate_id", nullable = false) private UUID aggregateId;
-  @Column(name = "aggregate_version", nullable = false) private int aggregateVersion;
-  @Column(name = "event_type", nullable = false) private String eventType;
-  @Column(nullable = false) private String status = "DELIVERED";
-  @Column(name = "created_at", nullable = false) private Instant createdAt = Instant.now();
+
+  @Column(nullable = false)
+  private String recipient;
+
+  @Column(name = "event_id", nullable = false)
+  private UUID eventId;
+
+  @Column(name = "aggregate_id", nullable = false)
+  private UUID aggregateId;
+
+  @Column(name = "aggregate_version", nullable = false)
+  private int aggregateVersion;
+
+  @Column(name = "event_type", nullable = false)
+  private String eventType;
+
+  @Column(nullable = false)
+  private String status = "DELIVERED";
+
+  @Column(name = "created_at", nullable = false)
+  private Instant createdAt = Instant.now();
 
   protected NotificationDelivery() {}
 
-  NotificationDelivery(String recipient, UUID eventId, UUID aggregateId, int aggregateVersion, String eventType) {
+  NotificationDelivery(
+      String recipient, UUID eventId, UUID aggregateId, int aggregateVersion, String eventType) {
     this.recipient = recipient;
     this.eventId = eventId;
     this.aggregateId = aggregateId;

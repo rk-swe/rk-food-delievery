@@ -58,7 +58,9 @@ public class DeliveryPartnerService {
       user.setCreatedBy(actor);
       user.setUpdatedBy(actor);
       users.save(user);
-      credentials.save(new UserCredential(user, request.username().trim(), passwords.encode(request.password())));
+      credentials.save(
+          new UserCredential(
+              user, request.username().trim(), passwords.encode(request.password())));
       users.flush();
       credentials.flush();
       return response(user);
@@ -86,8 +88,11 @@ public class DeliveryPartnerService {
   @Transactional
   public void deactivate(UUID id) {
     UUID actor = current.requireRole(Role.ADMIN).id();
-    User user = users.findLockedById(id).filter(value -> value.getRole() == Role.DELIVERY_PARTNER)
-        .orElseThrow(() -> new NotFoundException("Delivery partner not found"));
+    User user =
+        users
+            .findLockedById(id)
+            .filter(value -> value.getRole() == Role.DELIVERY_PARTNER)
+            .orElseThrow(() -> new NotFoundException("Delivery partner not found"));
     if (workload.hasActiveDelivery(id)) throw new DomainException("Partner has an active delivery");
     user.setActive(false);
     user.setOnline(false);

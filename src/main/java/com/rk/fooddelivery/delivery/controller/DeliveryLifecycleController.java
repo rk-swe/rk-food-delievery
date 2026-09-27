@@ -1,2 +1,30 @@
-package com.rk.fooddelivery.delivery.controller; import com.rk.fooddelivery.auth.*; import com.rk.fooddelivery.delivery.service.DeliveryLifecycleService; import java.util.*; import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/orders") public class DeliveryLifecycleController { private final DeliveryLifecycleService lifecycle; private final CurrentUser current; public DeliveryLifecycleController(DeliveryLifecycleService lifecycle,CurrentUser current){this.lifecycle=lifecycle;this.current=current;} @PostMapping("/{id}/pickup") public Map<String,Object> pickup(@PathVariable UUID id){var o=lifecycle.pickup(current.requireRole(Role.DELIVERY_PARTNER).id(),id);return Map.of("id",o.getId(),"status",o.status().value());}@PostMapping("/{id}/delivery") public Map<String,Object> deliver(@PathVariable UUID id){var o=lifecycle.deliver(current.requireRole(Role.DELIVERY_PARTNER).id(),id);return Map.of("id",o.getId(),"status",o.status().value());} }
+package com.rk.fooddelivery.delivery.controller;
+
+import com.rk.fooddelivery.auth.*;
+import com.rk.fooddelivery.delivery.service.DeliveryLifecycleService;
+import java.util.*;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/orders")
+public class DeliveryLifecycleController {
+  private final DeliveryLifecycleService lifecycle;
+  private final CurrentUser current;
+
+  public DeliveryLifecycleController(DeliveryLifecycleService lifecycle, CurrentUser current) {
+    this.lifecycle = lifecycle;
+    this.current = current;
+  }
+
+  @PostMapping("/{id}/pickup")
+  public Map<String, Object> pickup(@PathVariable UUID id) {
+    var o = lifecycle.pickup(current.requireRole(Role.DELIVERY_PARTNER).id(), id);
+    return Map.of("id", o.getId(), "status", o.status().value());
+  }
+
+  @PostMapping("/{id}/delivery")
+  public Map<String, Object> deliver(@PathVariable UUID id) {
+    var o = lifecycle.deliver(current.requireRole(Role.DELIVERY_PARTNER).id(), id);
+    return Map.of("id", o.getId(), "status", o.status().value());
+  }
+}

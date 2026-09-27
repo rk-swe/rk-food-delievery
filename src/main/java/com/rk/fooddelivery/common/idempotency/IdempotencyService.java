@@ -1,3 +1,58 @@
 package com.rk.fooddelivery.common.idempotency;
-import com.rk.fooddelivery.common.error.DomainException; import java.nio.charset.StandardCharsets; import java.security.MessageDigest; import java.util.UUID; import java.util.function.Supplier; import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional;
-@Service public class IdempotencyService { private final IdempotencyRecordRepository records; public IdempotencyService(IdempotencyRecordRepository records){this.records=records;} @Transactional public StoredResponse execute(UUID actorId,String operation,String key,String request,String resourceId,Supplier<StoredResponse> action){ if(key==null||key.isBlank()) throw new DomainException("Idempotency-Key is required"); String hash=hash(request); var prior=records.findByActorIdAndOperationAndKey(actorId,operation,key); if(prior.isPresent()){if(!prior.get().getRequestHash().equals(hash))throw new DomainException("Idempotency key was already used with a different request");return prior.get().response();} StoredResponse response=action.get(); records.saveAndFlush(new IdempotencyRecord(actorId,operation,key,hash,resourceId==null?null:UUID.fromString(resourceId),response.status(),response.body(),response.location())); return response; } private String hash(String value){try{return java.util.HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(Exception e){throw new IllegalStateException(e);}} }
+
+import com.rk.fooddelivery.common.error.DomainException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.UUID;
+import java.util.function.Supplier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class IdempotencyService {
+  private final IdempotencyRecordRepository records;
+
+  public IdempotencyService(IdempotencyRecordRepository records) {
+    this.records = records;
+  }
+
+  @Transactional
+  public StoredResponse execute(
+      UUID actorId,
+      String operation,
+      String key,
+      String request,
+      String resourceId,
+      Supplier<StoredResponse> action) {
+    if (key == null || key.isBlank()) throw new DomainException("Idempotency-Key is required");
+    String hash = hash(request);
+    var prior = records.findByActorIdAndOperationAndKey(actorId, operation, key);
+    if (prior.isPresent()) {
+      if (!prior.get().getRequestHash().equals(hash))
+        throw new DomainException("Idempotency key was already used with a different request");
+      return prior.get().response();
+    }
+    StoredResponse response = action.get();
+    records.saveAndFlush(
+        new IdempotencyRecord(
+            actorId,
+            operation,
+            key,
+            hash,
+            resourceId == null ? null : UUID.fromString(resourceId),
+            response.status(),
+            response.body(),
+            response.location()));
+    return response;
+  }
+
+  private String hash(String value) {
+    try {
+      return java.util.HexFormat.of()
+          .formatHex(
+              MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+}

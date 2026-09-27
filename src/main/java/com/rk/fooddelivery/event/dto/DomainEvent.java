@@ -13,7 +13,11 @@ public record DomainEvent(
     Map<String, Object> payload) {
 
   public DomainEvent {
-    if (id == null || type == null || aggregateId == null || occurredAt == null || payload == null) {
+    if (id == null
+        || type == null
+        || aggregateId == null
+        || occurredAt == null
+        || payload == null) {
       throw new IllegalArgumentException("A domain event requires its envelope fields");
     }
     if (aggregateVersion < 0) {

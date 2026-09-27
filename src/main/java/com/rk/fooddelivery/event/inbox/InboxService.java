@@ -8,7 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class InboxService {
   private final InboxEntryRepository entries;
 
-  public InboxService(InboxEntryRepository entries) { this.entries = entries; }
+  public InboxService(InboxEntryRepository entries) {
+    this.entries = entries;
+  }
 
   @Transactional
   public boolean recordOnce(String consumer, UUID eventId) {

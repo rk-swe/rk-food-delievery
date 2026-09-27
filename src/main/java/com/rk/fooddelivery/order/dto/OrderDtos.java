@@ -1,3 +1,32 @@
 package com.rk.fooddelivery.order.dto;
-import jakarta.validation.constraints.*; import java.math.BigDecimal; import java.time.Instant; import java.util.*;
-public final class OrderDtos { private OrderDtos(){} public record CheckoutRequest(@NotBlank String paymentMethod,@NotBlank String addressLine1,@NotBlank String city,@NotBlank String state,@NotBlank String country,@NotNull @PositiveOrZero Long cartVersion){} public record OrderItemResponse(UUID menuItemId,int quantity,BigDecimal unitPrice){} public record OrderResponse(UUID id,UUID customerId,UUID restaurantId,String orderStatus,String paymentStatus,BigDecimal totalAmount,int version,Instant paymentDeadlineAt,String assignmentStatus,List<OrderItemResponse> items){} }
+
+import jakarta.validation.constraints.*;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+
+public final class OrderDtos {
+  private OrderDtos() {}
+
+  public record CheckoutRequest(
+      @NotBlank String paymentMethod,
+      @NotBlank String addressLine1,
+      @NotBlank String city,
+      @NotBlank String state,
+      @NotBlank String country,
+      @NotNull @PositiveOrZero Long cartVersion) {}
+
+  public record OrderItemResponse(UUID menuItemId, int quantity, BigDecimal unitPrice) {}
+
+  public record OrderResponse(
+      UUID id,
+      UUID customerId,
+      UUID restaurantId,
+      String orderStatus,
+      String paymentStatus,
+      BigDecimal totalAmount,
+      int version,
+      Instant paymentDeadlineAt,
+      String assignmentStatus,
+      List<OrderItemResponse> items) {}
+}

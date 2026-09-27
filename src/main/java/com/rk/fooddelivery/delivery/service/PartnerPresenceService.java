@@ -7,8 +7,8 @@ import com.rk.fooddelivery.delivery.dto.PartnerDtos.*;
 import com.rk.fooddelivery.delivery.repository.PartnerPresenceRepository;
 import com.rk.fooddelivery.user.entity.User;
 import com.rk.fooddelivery.user.repository.UserRepository;
-import java.util.UUID;
 import jakarta.persistence.EntityManager;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

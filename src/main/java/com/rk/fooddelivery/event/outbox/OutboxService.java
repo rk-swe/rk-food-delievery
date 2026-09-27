@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class OutboxService {
   private final OutboxEventRepository events;
+
   public OutboxService(OutboxEventRepository events) {
     this.events = events;
   }

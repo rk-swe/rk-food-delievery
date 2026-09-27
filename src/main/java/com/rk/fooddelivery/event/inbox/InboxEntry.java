@@ -12,5 +12,8 @@ class InboxEntry {
   private Instant receivedAt = Instant.now();
 
   protected InboxEntry() {}
-  InboxEntry(InboxEntryId id) { this.id = id; }
+
+  InboxEntry(InboxEntryId id) {
+    this.id = id;
+  }
 }

@@ -1,3 +1,46 @@
 package com.rk.fooddelivery.order.controller;
-import com.rk.fooddelivery.auth.CurrentUser; import com.rk.fooddelivery.auth.Role; import com.rk.fooddelivery.order.dto.OrderDtos.*; import com.rk.fooddelivery.order.service.CheckoutService; import jakarta.validation.Valid; import java.util.UUID; import org.springframework.http.*; import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/orders") public class OrderController { private final CheckoutService checkout; private final com.rk.fooddelivery.order.service.OrderLifecycleService lifecycle; private final CurrentUser current; public OrderController(CheckoutService checkout,com.rk.fooddelivery.order.service.OrderLifecycleService lifecycle,CurrentUser current){this.checkout=checkout;this.lifecycle=lifecycle;this.current=current;} @PostMapping public ResponseEntity<OrderResponse> place(@RequestHeader("Idempotency-Key") String key,@Valid @RequestBody CheckoutRequest request){OrderResponse response=checkout.place(current.requireRole(Role.CUSTOMER).id(),key,request);return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.LOCATION,"/api/orders/"+response.id()).body(response);} @GetMapping public java.util.List<OrderResponse> list(){return lifecycle.customerOrders(current.requireRole(Role.CUSTOMER).id());}@GetMapping("/{id}") public OrderResponse get(@PathVariable UUID id){return checkout.get(id);} }
+
+import com.rk.fooddelivery.auth.CurrentUser;
+import com.rk.fooddelivery.auth.Role;
+import com.rk.fooddelivery.order.dto.OrderDtos.*;
+import com.rk.fooddelivery.order.service.CheckoutService;
+import jakarta.validation.Valid;
+import java.util.UUID;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+  private final CheckoutService checkout;
+  private final com.rk.fooddelivery.order.service.OrderLifecycleService lifecycle;
+  private final CurrentUser current;
+
+  public OrderController(
+      CheckoutService checkout,
+      com.rk.fooddelivery.order.service.OrderLifecycleService lifecycle,
+      CurrentUser current) {
+    this.checkout = checkout;
+    this.lifecycle = lifecycle;
+    this.current = current;
+  }
+
+  @PostMapping
+  public ResponseEntity<OrderResponse> place(
+      @RequestHeader("Idempotency-Key") String key, @Valid @RequestBody CheckoutRequest request) {
+    OrderResponse response = checkout.place(current.requireRole(Role.CUSTOMER).id(), key, request);
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .header(HttpHeaders.LOCATION, "/api/orders/" + response.id())
+        .body(response);
+  }
+
+  @GetMapping
+  public java.util.List<OrderResponse> list() {
+    return lifecycle.customerOrders(current.requireRole(Role.CUSTOMER).id());
+  }
+
+  @GetMapping("/{id}")
+  public OrderResponse get(@PathVariable UUID id) {
+    return checkout.get(id);
+  }
+}

@@ -1,2 +1,36 @@
-package com.rk.fooddelivery.delivery.service; import com.rk.fooddelivery.common.error.*; import com.rk.fooddelivery.order.entity.*; import com.rk.fooddelivery.order.repository.OrderRepository; import java.util.*; import org.springframework.stereotype.Service; import org.springframework.transaction.annotation.Transactional;
-@Service public class DeliveryLifecycleService { private final OrderRepository orders; public DeliveryLifecycleService(OrderRepository orders){this.orders=orders;} @Transactional public Order pickup(UUID partner,UUID id){Order o=orders.findLockedById(id).orElseThrow(()->new NotFoundException("Order not found"));if(!partner.equals(o.getDeliveryPartnerId())||o.status()!=OrderStatus.READY_FOR_PICKUP)throw new DomainException("Order is not ready for pickup");o.transition(OrderStatus.OUT_FOR_DELIVERY);return o;} @Transactional public Order deliver(UUID partner,UUID id){Order o=orders.findLockedById(id).orElseThrow(()->new NotFoundException("Order not found"));if(!partner.equals(o.getDeliveryPartnerId())||o.status()!=OrderStatus.OUT_FOR_DELIVERY)throw new DomainException("Order is not out for delivery");o.transition(OrderStatus.DELIVERED);o.assignmentStatus("Completed");return o;} }
+package com.rk.fooddelivery.delivery.service;
+
+import com.rk.fooddelivery.common.error.*;
+import com.rk.fooddelivery.order.entity.*;
+import com.rk.fooddelivery.order.repository.OrderRepository;
+import java.util.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class DeliveryLifecycleService {
+  private final OrderRepository orders;
+
+  public DeliveryLifecycleService(OrderRepository orders) {
+    this.orders = orders;
+  }
+
+  @Transactional
+  public Order pickup(UUID partner, UUID id) {
+    Order o = orders.findLockedById(id).orElseThrow(() -> new NotFoundException("Order not found"));
+    if (!partner.equals(o.getDeliveryPartnerId()) || o.status() != OrderStatus.READY_FOR_PICKUP)
+      throw new DomainException("Order is not ready for pickup");
+    o.transition(OrderStatus.OUT_FOR_DELIVERY);
+    return o;
+  }
+
+  @Transactional
+  public Order deliver(UUID partner, UUID id) {
+    Order o = orders.findLockedById(id).orElseThrow(() -> new NotFoundException("Order not found"));
+    if (!partner.equals(o.getDeliveryPartnerId()) || o.status() != OrderStatus.OUT_FOR_DELIVERY)
+      throw new DomainException("Order is not out for delivery");
+    o.transition(OrderStatus.DELIVERED);
+    o.assignmentStatus("Completed");
+    return o;
+  }
+}

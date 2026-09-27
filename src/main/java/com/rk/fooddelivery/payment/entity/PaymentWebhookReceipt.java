@@ -1,2 +1,25 @@
-package com.rk.fooddelivery.payment.entity; import jakarta.persistence.*; import java.time.Instant;
-@Entity @Table(name="payment_webhook_receipts") public class PaymentWebhookReceipt { @Id @Column(name="provider_event_id") private String providerEventId; @Column(name="payload_hash") private String payloadHash; @Column(name="received_at") private Instant receivedAt=Instant.now(); protected PaymentWebhookReceipt(){} public PaymentWebhookReceipt(String id,String hash){providerEventId=id;payloadHash=hash;} }
+package com.rk.fooddelivery.payment.entity;
+
+import jakarta.persistence.*;
+import java.time.Instant;
+
+@Entity
+@Table(name = "payment_webhook_receipts")
+public class PaymentWebhookReceipt {
+  @Id
+  @Column(name = "provider_event_id")
+  private String providerEventId;
+
+  @Column(name = "payload_hash")
+  private String payloadHash;
+
+  @Column(name = "received_at")
+  private Instant receivedAt = Instant.now();
+
+  protected PaymentWebhookReceipt() {}
+
+  public PaymentWebhookReceipt(String id, String hash) {
+    providerEventId = id;
+    payloadHash = hash;
+  }
+}

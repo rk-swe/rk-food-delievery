@@ -57,12 +57,36 @@ class OutboxEvent {
     this.occurredAt = occurredAt;
   }
 
-  UUID id() { return id; }
-  String eventType() { return eventType; }
-  UUID aggregateId() { return aggregateId; }
-  int aggregateVersion() { return aggregateVersion; }
-  Map<String, Object> payload() { return payload; }
-  Instant occurredAt() { return occurredAt; }
-  void publishedAt(Instant value) { publishedAt = value; }
-  void failed(String error) { publishAttempts++; lastError = error; }
+  UUID id() {
+    return id;
+  }
+
+  String eventType() {
+    return eventType;
+  }
+
+  UUID aggregateId() {
+    return aggregateId;
+  }
+
+  int aggregateVersion() {
+    return aggregateVersion;
+  }
+
+  Map<String, Object> payload() {
+    return payload;
+  }
+
+  Instant occurredAt() {
+    return occurredAt;
+  }
+
+  void publishedAt(Instant value) {
+    publishedAt = value;
+  }
+
+  void failed(String error) {
+    publishAttempts++;
+    lastError = error;
+  }
 }

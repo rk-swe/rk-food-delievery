@@ -32,6 +32,11 @@ schema, HMAC webhook handling, pending-payment success/failure transitions,
 expiry stock release, durable refund requests and payment endpoint. Compile
 passed; deferred coverage: PaymentIntegrationTest and CheckoutConcurrencyTest.
 
+Task 9: implemented; verification pending. Added owner paid-order decisions,
+preparation/readiness transitions, customer history and owner restaurant order
+resources with transition events. Compile passed; deferred coverage:
+OrderLifecycleIntegrationTest and PaymentIntegrationTest.
+
 2026-09-28 REST/Hibernate revision: user requested resource-oriented APIs and
 Hibernate where practical, plus plan/docs guidance for future AI work. Added
 `docs/superpowers/specs/2026-09-28-rest-jpa-design.md` for detailed review and

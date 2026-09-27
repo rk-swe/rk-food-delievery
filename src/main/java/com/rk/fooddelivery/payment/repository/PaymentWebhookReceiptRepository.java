@@ -1,0 +1,1 @@
+package com.rk.fooddelivery.payment.repository; import com.rk.fooddelivery.payment.entity.PaymentWebhookReceipt; import org.springframework.data.jpa.repository.JpaRepository; public interface PaymentWebhookReceiptRepository extends JpaRepository<PaymentWebhookReceipt,String>{}

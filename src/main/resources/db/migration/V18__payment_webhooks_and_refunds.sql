@@ -1,0 +1,2 @@
+CREATE TABLE payment_webhook_receipts (provider_event_id varchar(255) PRIMARY KEY, payload_hash varchar(128) NOT NULL, received_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE payment_refunds (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), order_id uuid NOT NULL REFERENCES orders(id), reason text NOT NULL, status varchar(30) NOT NULL DEFAULT 'Pending', created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP, completed_at timestamptz, CONSTRAINT payment_refunds_order_reason_unique UNIQUE(order_id, reason));

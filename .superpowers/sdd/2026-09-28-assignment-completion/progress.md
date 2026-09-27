@@ -27,6 +27,11 @@ stock-release guard, checkout resource and outbox event. Compile:
 `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home ./mvnw -DskipTests compile`
 passed. Deferred coverage: CheckoutConcurrencyTest and CartIntegrationTest.
 
+Task 8: implemented; verification pending. Added V18 webhook receipt/refund
+schema, HMAC webhook handling, pending-payment success/failure transitions,
+expiry stock release, durable refund requests and payment endpoint. Compile
+passed; deferred coverage: PaymentIntegrationTest and CheckoutConcurrencyTest.
+
 2026-09-28 REST/Hibernate revision: user requested resource-oriented APIs and
 Hibernate where practical, plus plan/docs guidance for future AI work. Added
 `docs/superpowers/specs/2026-09-28-rest-jpa-design.md` for detailed review and

@@ -1,6 +1,7 @@
 package com.rk.fooddelivery.auth;
 
-import org.springframework.jdbc.core.JdbcTemplate;
+import com.rk.fooddelivery.user.entity.UserCredential;
+import com.rk.fooddelivery.user.repository.UserCredentialRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,34 +10,25 @@ import org.springframework.stereotype.Service;
 @Service
 public class DatabaseUserDetailsService implements UserDetailsService {
 
-  private final JdbcTemplate jdbc;
+  private final UserCredentialRepository credentials;
 
-  public DatabaseUserDetailsService(JdbcTemplate jdbc) {
-    this.jdbc = jdbc;
+  public DatabaseUserDetailsService(UserCredentialRepository credentials) {
+    this.credentials = credentials;
   }
 
   @Override
   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    return jdbc.query(
-        """
-            SELECT u.id, c.username, c.password_hash, u.name, u.email, u.role, u.active
-            FROM user_credentials c
-            JOIN users u ON u.id = c.user_id
-            WHERE lower(c.username) = lower(?)
-            """,
-        rs -> {
-          if (!rs.next()) {
-            throw new UsernameNotFoundException("Unknown username");
-          }
-          return new AuthenticatedUser(
-              rs.getObject("id", java.util.UUID.class),
-              rs.getString("username"),
-              rs.getString("password_hash"),
-              rs.getString("name"),
-              rs.getString("email"),
-              Role.fromDatabase(rs.getString("role")),
-              rs.getBoolean("active"));
-        },
-        username);
+    UserCredential credential =
+        credentials
+            .findWithUserByUsernameIgnoreCase(username)
+            .orElseThrow(() -> new UsernameNotFoundException("Unknown username"));
+    return new AuthenticatedUser(
+        credential.getUser().getId(),
+        credential.getUsername(),
+        credential.getPasswordHash(),
+        credential.getUser().getName(),
+        credential.getUser().getEmail(),
+        credential.getUser().getRole(),
+        credential.getUser().isActive());
   }
 }

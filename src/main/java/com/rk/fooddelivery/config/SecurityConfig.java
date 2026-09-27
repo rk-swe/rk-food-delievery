@@ -35,8 +35,6 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             authorize ->
                 authorize
-                    .requestMatchers("/api/admin/**")
-                    .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, "/api/cities", "/api/cities/**")
                     .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.PATCH, "/api/cities", "/api/cities/**")

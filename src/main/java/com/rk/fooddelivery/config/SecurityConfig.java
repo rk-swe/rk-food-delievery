@@ -49,8 +49,6 @@ public class SecurityConfig {
                 authorize
                     .requestMatchers(HttpMethod.POST, "/api/auth/tokens")
                     .permitAll()
-                    .requestMatchers("/api/admin/**")
-                    .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, "/api/cities", "/api/cities/**")
                     .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.PATCH, "/api/cities", "/api/cities/**")

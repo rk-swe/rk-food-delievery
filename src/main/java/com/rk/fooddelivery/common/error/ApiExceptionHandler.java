@@ -38,6 +38,12 @@ public class ApiExceptionHandler {
             List.of()));
     }
 
+    @ExceptionHandler(NotFoundException.class)
+    ResponseEntity<ApiError> handleNotFound(NotFoundException exception, HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiError(
+            HttpStatus.NOT_FOUND.value(), "NOT_FOUND", exception.getMessage(), requestId(request), List.of()));
+    }
+
     private String requestId(HttpServletRequest request) {
         Object existing = request.getAttribute(REQUEST_ID_ATTRIBUTE);
         if (existing instanceof String value) {

@@ -1,0 +1,10 @@
+@host = http://localhost:8080
+
+### Obtain a JWT
+POST {{host}}/api/auth/tokens
+Content-Type: application/json
+
+{"username":"customer1@demo.local","password":"change-me"}
+
+### Get catalog
+GET {{host}}/api/restaurants

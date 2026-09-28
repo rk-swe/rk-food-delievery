@@ -16,13 +16,19 @@ public class DeliveryOfferService {
   private final DeliveryOfferRepository offers;
   private final OrderRepository orders;
   private final UserRepository users;
+  private final PartnerWorkloadRepository workloads;
   private final Clock clock;
 
   public DeliveryOfferService(
-      DeliveryOfferRepository offers, OrderRepository orders, UserRepository users, Clock clock) {
+      DeliveryOfferRepository offers,
+      OrderRepository orders,
+      UserRepository users,
+      PartnerWorkloadRepository workloads,
+      Clock clock) {
     this.offers = offers;
     this.orders = orders;
     this.users = users;
+    this.workloads = workloads;
     this.clock = clock;
   }
 
@@ -57,6 +63,9 @@ public class DeliveryOfferService {
     if (!offer.getPartnerId().equals(partner)
         || offer.getRound() != round
         || !offer.active(clock.instant())) throw new DomainException("Offer is not active");
+    users.findLockedById(partner).orElseThrow(() -> new NotFoundException("Partner not found"));
+    if (workloads.hasActiveDelivery(partner))
+      throw new DomainException("Delivery partner already has an active order");
     Order order = orders.findLockedById(offer.getOrderId()).orElseThrow();
     if (order.getDeliveryPartnerId() != null) throw new DomainException("Order already assigned");
     offer.accept();

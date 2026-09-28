@@ -6,7 +6,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.rk.fooddelivery.support.IntegrationTestSupport;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +28,7 @@ class CheckoutConcurrencyTest extends IntegrationTestSupport {
   @Autowired PasswordEncoder passwords;
 
   private UUID item;
+  private UUID restaurant;
   private RequestPostProcessor customer;
 
   @BeforeEach
@@ -32,7 +39,7 @@ class CheckoutConcurrencyTest extends IntegrationTestSupport {
         jdbc.queryForObject(
             "INSERT INTO cities (name,state,country,currency) VALUES ('Pune','MH','India','INR') RETURNING id",
             UUID.class);
-    UUID restaurant =
+    restaurant =
         jdbc.queryForObject(
             "INSERT INTO restaurants (name,owner_id,city_id,cost_for_two,diet_type,address_line_1,location) VALUES ('Checkout Kitchen',?,?,200,'Veg','Road',ST_GeogFromText('POINT(73.8567 18.5204)')) RETURNING id",
             UUID.class,
@@ -56,6 +63,66 @@ class CheckoutConcurrencyTest extends IntegrationTestSupport {
                 .contentType("application/json")
                 .content("{\"quantity\":2}"))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void twentySimultaneousCheckoutsAgainstStockFiveCreateOnlyFiveOrders() throws Exception {
+    jdbc.update("UPDATE menu_items SET available_quantity=5 WHERE id=?", item);
+    List<RequestPostProcessor> customers = new ArrayList<>();
+    for (int number = 0; number < 20; number++) {
+      String username = "customer-" + number + "@checkout-race.test";
+      UUID customerId = user(username, "customer");
+      UUID cartId = UUID.randomUUID();
+      jdbc.update(
+          "INSERT INTO carts (id,customer_id,restaurant_id) VALUES (?,?,?)",
+          cartId,
+          customerId,
+          restaurant);
+      jdbc.update(
+          "INSERT INTO cart_items (id,cart_id,restaurant_id,menu_item_id,quantity) VALUES (?,?,?,?,1)",
+          UUID.randomUUID(),
+          cartId,
+          restaurant,
+          item);
+      customers.add(bearer(username, "secret"));
+    }
+
+    CyclicBarrier barrier = new CyclicBarrier(customers.size());
+    ExecutorService executor = Executors.newFixedThreadPool(customers.size());
+    try {
+      List<Future<Integer>> results = new ArrayList<>();
+      for (int number = 0; number < customers.size(); number++) {
+        RequestPostProcessor customerBearer = customers.get(number);
+        int requestNumber = number;
+        results.add(
+            executor.submit(
+                () -> {
+                  barrier.await();
+                  return mvc.perform(
+                          post("/api/orders")
+                              .with(customerBearer)
+                              .header("Idempotency-Key", "stock-race-" + requestNumber)
+                              .contentType("application/json")
+                              .content(
+                                  "{\"paymentMethod\":\"UPI\",\"addressLine1\":\"42 Lane\",\"city\":\"Pune\",\"state\":\"MH\",\"country\":\"India\",\"cartVersion\":0}"))
+                      .andReturn()
+                      .getResponse()
+                      .getStatus();
+                }));
+      }
+      List<Integer> statuses = new ArrayList<>();
+      for (Future<Integer> result : results) statuses.add(result.get());
+
+      assertThat(statuses.stream().filter(status -> status == 201).count()).isEqualTo(5);
+      assertThat(statuses.stream().filter(status -> status == 409).count()).isEqualTo(15);
+    } finally {
+      executor.shutdownNow();
+    }
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM orders", Integer.class)).isEqualTo(5);
+    assertThat(
+            jdbc.queryForObject(
+                "SELECT available_quantity FROM menu_items WHERE id=?", Integer.class, item))
+        .isZero();
   }
 
   @Test

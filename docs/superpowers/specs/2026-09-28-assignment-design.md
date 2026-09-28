@@ -259,13 +259,13 @@ no HTTP request waits for a broker or notification.
 
 Queues and in-process listeners:
 
-| Queue | Responsibility |
-| --- | --- |
-| `notifications.customer` | Customer-facing logs for relevant transitions |
-| `notifications.restaurant` | Owner-facing logs for relevant transitions |
-| `notifications.partner` | Offer and assigned-partner logs |
-| `delivery.assignment` | Create offers on OrderAccepted |
-| `payments.refund` | Complete idempotent mock refunds |
+| Queue                      | Responsibility                                |
+| -------------------------- | --------------------------------------------- |
+| `notifications.customer`   | Customer-facing logs for relevant transitions |
+| `notifications.restaurant` | Owner-facing logs for relevant transitions    |
+| `notifications.partner`    | Offer and assigned-partner logs               |
+| `delivery.assignment`      | Create offers on OrderAccepted                |
+| `payments.refund`          | Complete idempotent mock refunds              |
 
 Use topic bindings to choose events each queue receives. Multiple consumers on
 ONE queue divide work; separate queues are what make the same event reach
@@ -285,18 +285,18 @@ stale events. Notifications include version and status.
 
 All paths below have `/api` prefix. Own-resource checks apply as well as roles.
 
-| Actor | Endpoints / behavior |
-| --- | --- |
-| Any authenticated user | `GET /me`, `GET /cities`, `GET /cuisines` |
-| Admin | POST/GET/PATCH/DELETE `/admin/cities`, `/admin/restaurants`, `/admin/delivery-partners` and ID variants |
-| Owner | GET own restaurants; POST/GET/PATCH/DELETE `/restaurants/{id}/categories` and `/restaurants/{id}/menu-items` and ID variants; manage own opening hours |
-| Customer | `GET /restaurants`, `GET /restaurants/{id}`, `GET /restaurants/{id}/menu-items` |
-| Customer | GET/DELETE `/cart`; PUT `/cart/items/{itemId}` sets absolute quantity; DELETE item; PUT across restaurants atomically replaces old items |
-| Customer | POST `/orders`; GET `/orders`, `/orders/{id}`; POST `/orders/{id}/review` |
-| Owner | GET `/owner/orders`; POST `/orders/{id}/accept`, `/reject`, `/start-preparation`, `/ready` |
-| Partner | PATCH `/delivery-partners/me/location`, `/availability`; GET `/delivery-offers`; POST `/delivery-offers/{id}/accept`; POST `/orders/{id}/pickup`, `/deliver` |
-| Mock provider | POST `/payments/webhook`, authenticated with a dedicated HMAC secret, not customer credentials |
-| Customer, demo profile only | POST `/mock/payments/{paymentId}/complete` for own payment, invokes mock provider/webhook contract |
+| Actor                       | Endpoints / behavior                                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Any authenticated user      | `GET /me`, `GET /cities`, `GET /cuisines`                                                                                                                    |
+| Admin                       | POST/GET/PATCH/DELETE `/admin/cities`, `/admin/restaurants`, `/admin/delivery-partners` and ID variants                                                      |
+| Owner                       | GET own restaurants; POST/GET/PATCH/DELETE `/restaurants/{id}/categories` and `/restaurants/{id}/menu-items` and ID variants; manage own opening hours       |
+| Customer                    | `GET /restaurants`, `GET /restaurants/{id}`, `GET /restaurants/{id}/menu-items`                                                                              |
+| Customer                    | GET/DELETE `/cart`; PUT `/cart/items/{itemId}` sets absolute quantity; DELETE item; PUT across restaurants atomically replaces old items                     |
+| Customer                    | POST `/orders`; GET `/orders`, `/orders/{id}`; POST `/orders/{id}/review`                                                                                    |
+| Owner                       | GET `/owner/orders`; POST `/orders/{id}/accept`, `/reject`, `/start-preparation`, `/ready`                                                                   |
+| Partner                     | PATCH `/delivery-partners/me/location`, `/availability`; GET `/delivery-offers`; POST `/delivery-offers/{id}/accept`; POST `/orders/{id}/pickup`, `/deliver` |
+| Mock provider               | POST `/payments/webhook`, authenticated with a dedicated HMAC secret, not customer credentials                                                               |
+| Customer, demo profile only | POST `/mock/payments/{paymentId}/complete` for own payment, invokes mock provider/webhook contract                                                           |
 
 List endpoints use page >= 0, size 1..100 (default 20), allowlisted sort fields
 and deterministic ID tiebreakers. Validate nonblank/bounded names and reviews,

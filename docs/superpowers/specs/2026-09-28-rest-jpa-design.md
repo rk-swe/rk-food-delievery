@@ -25,17 +25,17 @@ not URL namespaces. Remove the old admin routes when replacing them: this is a
 local assignment with no declared external clients, so the proposal does not
 maintain duplicate legacy routes. Document the breaking mappings in README.
 
-| Current route | Replacement | Access and behavior |
-| --- | --- | --- |
-| `/api/me` | `/api/me` | Authenticated account DTO; never return credential entities |
-| `/api/admin/cities` and ID routes | `/api/cities` and `/api/cities/{id}` | Admin POST/PATCH/DELETE; authenticated GET; admins can inspect inactive cities, other roles see only active cities |
-| `/api/admin/restaurants` and ID routes | `/api/restaurants` and `/api/restaurants/{id}` | Admin CRUD; owner GET is restricted to their restaurants; customer/partner GET sees active restaurants in active cities |
-| `/api/restaurants/mine` | `/api/me/restaurants` | Owner-only collection, identity derived from principal |
-| `/api/restaurants/{id}/hours` | Same route | Owner-only PATCH for that restaurant; keep existing partial-day update semantics |
-| `/api/admin/delivery-partners` and ID routes | `/api/delivery-partners` and `/api/delivery-partners/{id}` | Admin-only CRUD, including list/detail; never expose a partner directory to customers |
-| `/api/delivery-partners/me/location` | `/api/me/delivery-partner/location` | Delivery partner PATCH of own location |
-| `/api/delivery-partners/me/availability` | `/api/me/delivery-partner/availability` | Delivery partner PATCH of own availability |
-| `/api/cuisines` | Same route | Authenticated GET |
+| Current route                                | Replacement                                                | Access and behavior                                                                                                     |
+| -------------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `/api/me`                                    | `/api/me`                                                  | Authenticated account DTO; never return credential entities                                                             |
+| `/api/admin/cities` and ID routes            | `/api/cities` and `/api/cities/{id}`                       | Admin POST/PATCH/DELETE; authenticated GET; admins can inspect inactive cities, other roles see only active cities      |
+| `/api/admin/restaurants` and ID routes       | `/api/restaurants` and `/api/restaurants/{id}`             | Admin CRUD; owner GET is restricted to their restaurants; customer/partner GET sees active restaurants in active cities |
+| `/api/restaurants/mine`                      | `/api/me/restaurants`                                      | Owner-only collection, identity derived from principal                                                                  |
+| `/api/restaurants/{id}/hours`                | Same route                                                 | Owner-only PATCH for that restaurant; keep existing partial-day update semantics                                        |
+| `/api/admin/delivery-partners` and ID routes | `/api/delivery-partners` and `/api/delivery-partners/{id}` | Admin-only CRUD, including list/detail; never expose a partner directory to customers                                   |
+| `/api/delivery-partners/me/location`         | `/api/me/delivery-partner/location`                        | Delivery partner PATCH of own location                                                                                  |
+| `/api/delivery-partners/me/availability`     | `/api/me/delivery-partner/availability`                    | Delivery partner PATCH of own availability                                                                              |
+| `/api/cuisines`                              | Same route                                                 | Authenticated GET                                                                                                       |
 
 Resource GET filtering applies in the database before pagination and counting.
 Inactive catalog and another owner's resources return 404 to callers who cannot

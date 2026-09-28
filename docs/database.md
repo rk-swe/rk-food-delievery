@@ -7,17 +7,17 @@ creating tables. The database must already exist, and the migration user must
 be allowed to install `postgis` and `pg_trgm` (or an administrator must install
 them first).
 
-| Version | Domain | Tables / changes |
-| --- | --- | --- |
-| V1 | Database setup | PostGIS, trigram search, shared `updated_at` trigger function |
-| V2 | Users | All four roles in one users table |
-| V3 | Cities | Cities and currency |
-| V4 | Restaurant discovery | Restaurants, weekly timings, cuisines, restaurant cuisines |
-| V5 | Menus | Categories and items |
-| V6 | Coupons | Codes and discount configuration |
-| V7 | Ordering | Orders and order items |
-| V8 | Payments | Payment attempts |
-| V9 | Ratings | Optional order review and delivery-partner rating on orders |
+| Version | Domain               | Tables / changes                                              |
+| ------- | -------------------- | ------------------------------------------------------------- |
+| V1      | Database setup       | PostGIS, trigram search, shared `updated_at` trigger function |
+| V2      | Users                | All four roles in one users table                             |
+| V3      | Cities               | Cities and currency                                           |
+| V4      | Restaurant discovery | Restaurants, weekly timings, cuisines, restaurant cuisines    |
+| V5      | Menus                | Categories and items                                          |
+| V6      | Coupons              | Codes and discount configuration                              |
+| V7      | Ordering             | Orders and order items                                        |
+| V8      | Payments             | Payment attempts                                              |
+| V9      | Ratings              | Optional order review and delivery-partner rating on orders   |
 
 Related tables share a migration when they form one flow. Each migration has its
 own commit and depends only on preceding versions. Once a migration has been

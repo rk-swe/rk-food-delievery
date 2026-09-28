@@ -44,17 +44,17 @@
 
 All Java paths below are relative to `src/main/java/com/rk/fooddelivery/`; test paths are relative to `src/test/java/com/rk/fooddelivery/`. Braced directories in this map describe structure, not additional empty packages to create.
 
-| Feature | Files and responsibility |
-| --- | --- |
-| Shared identity | `auth/CurrentUser.java` remains principal authority; `auth/RoleConverter.java` maps Role to lowercase database strings |
-| User persistence | `user/entity/User.java`, `UserCredential.java`; `user/repository/UserRepository.java`, `UserCredentialRepository.java`; credentials never cross HTTP boundary |
-| Cities | `city/controller/CityController.java`, `city/service/CityService.java`, `city/repository/CityRepository.java`, `city/entity/City.java`, existing `city/dto/CityDtos.java` |
-| Cuisines | Keep within existing restaurant feature: `restaurant/controller/CuisineController.java`, `restaurant/service/CuisineService.java`, `restaurant/repository/CuisineRepository.java`, `restaurant/entity/Cuisine.java`, `restaurant/dto/CuisineResponse.java` |
-| Restaurants | `restaurant/controller/RestaurantController.java`, `OwnerRestaurantController.java`; `restaurant/service/RestaurantService.java`; `restaurant/repository/RestaurantRepository.java`, `RestaurantTimingRepository.java`; `restaurant/entity/Restaurant.java`, `RestaurantTiming.java`; existing `RestaurantDtos.java` |
-| Partners | `delivery/controller/DeliveryPartnerController.java` becomes admin resource controller; new `PartnerPresenceController.java` hosts self routes; `delivery/service/DeliveryPartnerService.java`, existing `PartnerPresenceService.java`; `delivery/repository/PartnerWorkloadRepository.java` holds narrow existing-order occupancy query |
-| Token authentication (3.6) | `auth/controller/AuthTokenController.java`, `auth/dto/TokenRequest.java`, `TokenResponse.java`; `auth/service/AuthTokenService.java`, `BearerUserService.java`; `auth/JwtUserAuthenticationConverter.java`; `config/JwtConfig.java` |
-| Account/API docs | Existing `user/controller/MeController.java`; new `user/dto/MeResponse.java`; `config/OpenApiConfig.java`; `config/SecurityConfig.java` |
-| Removed after migration | `admin/controller/AdminCrudController.java`, `admin/service/AdminCrudService.java`, `admin/repository/AdminRepository.java` |
+| Feature                    | Files and responsibility                                                                                                                                                                                                                                                                                                                 |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Shared identity            | `auth/CurrentUser.java` remains principal authority; `auth/RoleConverter.java` maps Role to lowercase database strings                                                                                                                                                                                                                   |
+| User persistence           | `user/entity/User.java`, `UserCredential.java`; `user/repository/UserRepository.java`, `UserCredentialRepository.java`; credentials never cross HTTP boundary                                                                                                                                                                            |
+| Cities                     | `city/controller/CityController.java`, `city/service/CityService.java`, `city/repository/CityRepository.java`, `city/entity/City.java`, existing `city/dto/CityDtos.java`                                                                                                                                                                |
+| Cuisines                   | Keep within existing restaurant feature: `restaurant/controller/CuisineController.java`, `restaurant/service/CuisineService.java`, `restaurant/repository/CuisineRepository.java`, `restaurant/entity/Cuisine.java`, `restaurant/dto/CuisineResponse.java`                                                                               |
+| Restaurants                | `restaurant/controller/RestaurantController.java`, `OwnerRestaurantController.java`; `restaurant/service/RestaurantService.java`; `restaurant/repository/RestaurantRepository.java`, `RestaurantTimingRepository.java`; `restaurant/entity/Restaurant.java`, `RestaurantTiming.java`; existing `RestaurantDtos.java`                     |
+| Partners                   | `delivery/controller/DeliveryPartnerController.java` becomes admin resource controller; new `PartnerPresenceController.java` hosts self routes; `delivery/service/DeliveryPartnerService.java`, existing `PartnerPresenceService.java`; `delivery/repository/PartnerWorkloadRepository.java` holds narrow existing-order occupancy query |
+| Token authentication (3.6) | `auth/controller/AuthTokenController.java`, `auth/dto/TokenRequest.java`, `TokenResponse.java`; `auth/service/AuthTokenService.java`, `BearerUserService.java`; `auth/JwtUserAuthenticationConverter.java`; `config/JwtConfig.java`                                                                                                      |
+| Account/API docs           | Existing `user/controller/MeController.java`; new `user/dto/MeResponse.java`; `config/OpenApiConfig.java`; `config/SecurityConfig.java`                                                                                                                                                                                                  |
+| Removed after migration    | `admin/controller/AdminCrudController.java`, `admin/service/AdminCrudService.java`, `admin/repository/AdminRepository.java`                                                                                                                                                                                                              |
 
 Do not create a second delivery-partner entity/table: partners are `User` rows with role `DELIVERY_PARTNER`. Use scalar UUID owner/city/audit references, except a lazy credential-to-user association fetched explicitly during login. UUID IDs are application generated for new ordinary entities; credential ID is its user's UUID. Entity field access and constructors must work with Hibernate; do not use records as entities. Preserve database defaults deliberately by initializing active/online/rating fields and marking database-generated timestamps read-only, then flush/refresh when a response needs generated values. Map text columns as text, currency length 3, money precision 10/scale 2, rating precision 3/scale 2, `LocalTime` hours and `Instant` timestamptz. No cascading historical deletes.
 
@@ -64,19 +64,19 @@ Do not create a second delivery-partner entity/table: partners are `User` rows w
 
 Every protected business service entry point below calls `CurrentUser` itself before data access. Public token issuance instead authenticates the submitted credentials through the existing authentication provider. Controllers must not supply actor/owner IDs for authorization. Entity/repository helper methods do not become public HTTP entry points. Actor columns come from the authenticated principal.
 
-| Service method / route | Permission and visibility |
-| --- | --- |
-| `CityService.list/get` — GET `/api/cities[/{id}]` | All authenticated; admin sees all, every other role sees active only |
-| `CityService.create/patch/deactivate` — POST/PATCH/DELETE city resources | ADMIN only |
-| `CuisineService.list` — GET `/api/cuisines` | All authenticated, size-limited list |
-| `RestaurantService.list/get` — GET `/api/restaurants[/{id}]` | ADMIN all; RESTAURANT_OWNER own, including inactive; CUSTOMER/DELIVERY_PARTNER only active restaurants in active cities |
-| `RestaurantService.mine` — GET `/api/me/restaurants` | RESTAURANT_OWNER only, same owned visibility |
-| `RestaurantService.create/patch/deactivate` — restaurant mutations | ADMIN only; active owner and locked active city required on create |
-| `RestaurantService.updateHours` — PATCH `/api/restaurants/{id}/hours` | RESTAURANT_OWNER only and matching owner; other owner's/missing ID => 404; admin => 403 |
-| `DeliveryPartnerService` — `/api/delivery-partners[/{id}]` all verbs | ADMIN only, detail on a non-partner UUID => 404 |
-| `PartnerPresenceService` — PATCH `/api/me/delivery-partner/location` or `/availability` | DELIVERY_PARTNER only; current principal ID, active account required |
-| `AuthTokenService.issue(TokenRequest)` — POST `/api/auth/tokens` (3.6) | Public credential exchange; authenticate active existing account with BCrypt, no existing Basic/Bearer header required |
-| GET `/api/me` | Any authenticated role; DTO only, no password/hash |
+| Service method / route                                                                  | Permission and visibility                                                                                               |
+| --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `CityService.list/get` — GET `/api/cities[/{id}]`                                       | All authenticated; admin sees all, every other role sees active only                                                    |
+| `CityService.create/patch/deactivate` — POST/PATCH/DELETE city resources                | ADMIN only                                                                                                              |
+| `CuisineService.list` — GET `/api/cuisines`                                             | All authenticated, size-limited list                                                                                    |
+| `RestaurantService.list/get` — GET `/api/restaurants[/{id}]`                            | ADMIN all; RESTAURANT_OWNER own, including inactive; CUSTOMER/DELIVERY_PARTNER only active restaurants in active cities |
+| `RestaurantService.mine` — GET `/api/me/restaurants`                                    | RESTAURANT_OWNER only, same owned visibility                                                                            |
+| `RestaurantService.create/patch/deactivate` — restaurant mutations                      | ADMIN only; active owner and locked active city required on create                                                      |
+| `RestaurantService.updateHours` — PATCH `/api/restaurants/{id}/hours`                   | RESTAURANT_OWNER only and matching owner; other owner's/missing ID => 404; admin => 403                                 |
+| `DeliveryPartnerService` — `/api/delivery-partners[/{id}]` all verbs                    | ADMIN only, detail on a non-partner UUID => 404                                                                         |
+| `PartnerPresenceService` — PATCH `/api/me/delivery-partner/location` or `/availability` | DELIVERY_PARTNER only; current principal ID, active account required                                                    |
+| `AuthTokenService.issue(TokenRequest)` — POST `/api/auth/tokens` (3.6)                  | Public credential exchange; authenticate active existing account with BCrypt, no existing Basic/Bearer header required  |
+| GET `/api/me`                                                                           | Any authenticated role; DTO only, no password/hash                                                                      |
 
 Through 3.5, use HTTP Basic for all `/api/**`. After 3.6, protected API routes accept only Bearer; POST `/api/auth/tokens` alone permits anonymous credential submission. Preserve every role/ownership rule under bearer authentication; reject Basic-only protected requests with 401. Unknown legacy admin URLs must have no handler. Remove `/api/admin/**` special matcher only when all migrated service methods enforce permissions. Test removed routes as an admin: 404 (for legacy `/api/restaurants/mine`, 400 from UUID conversion is acceptable, but it must not invoke the former handler). OpenAPI contains none of the removed paths. No compatibility aliases.
 
@@ -135,12 +135,12 @@ workers use isolated worktrees; the coordinator owns integration and the shared
 test slot. Retain a worker across related slices rather than starting a fresh
 agent/reviewer for each test.
 
-| Stage | Primary lane | Independent parallel lane | Integration gate |
-| --- | --- | --- | --- |
-| A | 3.3 restaurant implementation | 3.4 partner service/repository/new tests; 3.5 route/operation metadata inventory and documentation draft | Commit verified 3.3 first |
-| B | 3.4 integrate partner routes and retire admin code | 3.5 prepare contract tests; 3.6 JWT configuration/validator tests and new auth-only files on a private branch | Commit verified 3.4 before whole-route audit |
-| C | 3.5 annotations, resource audit and documentation | 3.6 continue isolated JWT implementation and fail-closed configuration tests | Commit verified 3.5 with current Basic runtime |
-| D | 3.6 integrate JWT security and shared token test helper | After helper is stable, migrate disjoint feature test files to bearer in parallel; prepare final Swagger/login docs | Merge all 3.6 slices, run its focused/full checks, commit once |
+| Stage | Primary lane                                            | Independent parallel lane                                                                                           | Integration gate                                               |
+| ----- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| A     | 3.3 restaurant implementation                           | 3.4 partner service/repository/new tests; 3.5 route/operation metadata inventory and documentation draft            | Commit verified 3.3 first                                      |
+| B     | 3.4 integrate partner routes and retire admin code      | 3.5 prepare contract tests; 3.6 JWT configuration/validator tests and new auth-only files on a private branch       | Commit verified 3.4 before whole-route audit                   |
+| C     | 3.5 annotations, resource audit and documentation       | 3.6 continue isolated JWT implementation and fail-closed configuration tests                                        | Commit verified 3.5 with current Basic runtime                 |
+| D     | 3.6 integrate JWT security and shared token test helper | After helper is stable, migrate disjoint feature test files to bearer in parallel; prepare final Swagger/login docs | Merge all 3.6 slices, run its focused/full checks, commit once |
 
 Parallel preparation never changes the integrated authentication mode early.
 Do not merge unfinished JWT configuration that would make a 3.3–3.5 application
@@ -176,12 +176,12 @@ For each checkpoint write its failing test, run it, implement and rerun it.
 Do not wait to author every test for a whole task before getting its first slice
 green. Checkpoints are progress units, not independent completion claims.
 
-| Task | Checkpoints in execution order | Final named test command remains |
-| --- | --- | --- |
-| 3.3 | JPA create/patch/spatial round-trip → role-filtered lists/detail/mine → hours update → city/hour races and legacy route removal | RestaurantResourceIntegrationTest, RestaurantConcurrencyIntegrationTest, AdminCrudIntegrationTest |
-| 3.4 | Partner CRUD/credential rollback → principal-derived presence/timestamps → busy/deactivation races → delete admin remnants | DeliveryPartnerResourceIntegrationTest, PartnerPresenceIntegrationTest, AdminCrudIntegrationTest, SecurityIntegrationTest |
-| 3.5 | Resource tags/operation metadata → parameterized route/role/Location audit → native-query boundary scan and accurate docs | OpenApiContractIntegrationTest, ResourceRouteContractIntegrationTest, SecurityIntegrationTest |
-| 3.6 | Fail-closed secret and JWT validators → token issuance/current-account bearer identity → atomic security/helper cutover → parallel test-client migration → final bearer OpenAPI/docs audit | JwtAuthenticationIntegrationTest, JwtConfigurationTest, SecurityIntegrationTest, OpenApiContractIntegrationTest, ResourceRouteContractIntegrationTest |
+| Task | Checkpoints in execution order                                                                                                                                                             | Final named test command remains                                                                                                                      |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3.3  | JPA create/patch/spatial round-trip → role-filtered lists/detail/mine → hours update → city/hour races and legacy route removal                                                            | RestaurantResourceIntegrationTest, RestaurantConcurrencyIntegrationTest, AdminCrudIntegrationTest                                                     |
+| 3.4  | Partner CRUD/credential rollback → principal-derived presence/timestamps → busy/deactivation races → delete admin remnants                                                                 | DeliveryPartnerResourceIntegrationTest, PartnerPresenceIntegrationTest, AdminCrudIntegrationTest, SecurityIntegrationTest                             |
+| 3.5  | Resource tags/operation metadata → parameterized route/role/Location audit → native-query boundary scan and accurate docs                                                                  | OpenApiContractIntegrationTest, ResourceRouteContractIntegrationTest, SecurityIntegrationTest                                                         |
+| 3.6  | Fail-closed secret and JWT validators → token issuance/current-account bearer identity → atomic security/helper cutover → parallel test-client migration → final bearer OpenAPI/docs audit | JwtAuthenticationIntegrationTest, JwtConfigurationTest, SecurityIntegrationTest, OpenApiContractIntegrationTest, ResourceRouteContractIntegrationTest |
 
 ### Reduce repeated setup and test overhead
 

@@ -55,8 +55,8 @@ public class OutboxPublisher {
             },
             correlation);
         CorrelationData.Confirm confirm = correlation.getFuture().get(5, TimeUnit.SECONDS);
-        if (!confirm.isAck()) {
-          throw new IllegalStateException("Broker rejected event: " + confirm.getReason());
+        if (!confirm.ack()) {
+          throw new IllegalStateException("Broker rejected event: " + confirm.reason());
         }
         stored.publishedAt(Instant.now());
         log.info(

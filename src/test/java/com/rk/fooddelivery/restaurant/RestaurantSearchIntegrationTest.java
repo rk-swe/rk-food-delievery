@@ -17,11 +17,10 @@ import org.springframework.test.web.servlet.MockMvc;
 class RestaurantSearchIntegrationTest extends IntegrationTestSupport {
   @Autowired MockMvc mvc;
   @Autowired PasswordEncoder passwords;
-  private UUID customer;
 
   @BeforeEach
   void fixtures() {
-    customer = user("Customer", "customer@example.test", "+919200000001", "customer", "customer");
+    user("Customer", "customer@example.test", "+919200000001", "customer", "customer");
     UUID owner = user("Owner", "owner@example.test", "+919200000002", "restaurant_owner", "owner");
     UUID city =
         jdbc.queryForObject(

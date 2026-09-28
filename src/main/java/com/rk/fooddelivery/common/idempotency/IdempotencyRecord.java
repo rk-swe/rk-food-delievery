@@ -13,6 +13,7 @@ public class IdempotencyRecord {
   @Column(name = "actor_id")
   private UUID actorId;
 
+  @SuppressWarnings("unused") // Persisted by Hibernate through field access.
   private String operation;
 
   @Column(name = "idempotency_key")

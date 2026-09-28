@@ -8,7 +8,6 @@ import com.rk.fooddelivery.restaurant.dto.RestaurantSearchRequest;
 import com.rk.fooddelivery.restaurant.entity.Restaurant;
 import com.rk.fooddelivery.restaurant.repository.RestaurantSearchRepository;
 import com.rk.fooddelivery.user.repository.UserRepository;
-import java.util.*;
 import org.locationtech.jts.geom.Point;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;

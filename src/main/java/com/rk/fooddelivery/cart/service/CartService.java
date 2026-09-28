@@ -46,7 +46,7 @@ public class CartService {
     MenuItem item =
         menuItems
             .findById(itemId)
-            .filter(MenuItem::isAvailable)
+            .filter(candidate -> candidate.isAvailable())
             .orElseThrow(() -> new NotFoundException("Menu item not found"));
     Cart cart = carts.findByCustomerId(customerId).orElse(null);
     boolean restaurantChanged =

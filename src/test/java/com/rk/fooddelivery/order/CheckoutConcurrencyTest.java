@@ -26,7 +26,7 @@ class CheckoutConcurrencyTest extends IntegrationTestSupport {
 
   @BeforeEach
   void fixture() throws Exception {
-    UUID customerId = user("customer@checkout.test", "customer");
+    user("customer@checkout.test", "customer");
     UUID owner = user("owner@checkout.test", "restaurant_owner");
     UUID city =
         jdbc.queryForObject(

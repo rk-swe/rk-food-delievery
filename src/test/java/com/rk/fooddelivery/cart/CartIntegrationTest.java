@@ -30,7 +30,6 @@ class CartIntegrationTest extends IntegrationTestSupport {
   @Autowired PasswordEncoder passwords;
 
   private UUID customer;
-  private UUID anotherCustomer;
   private UUID firstItem;
   private UUID secondItem;
   private UUID otherRestaurantItem;
@@ -38,7 +37,7 @@ class CartIntegrationTest extends IntegrationTestSupport {
   @BeforeEach
   void fixtures() {
     customer = customer("customer", "customer@example.test", "+919100000001");
-    anotherCustomer = customer("other-customer", "other@example.test", "+919100000002");
+    customer("other-customer", "other@example.test", "+919100000002");
     UUID owner = customer("owner", "owner@example.test", "+919100000003", "restaurant_owner");
     UUID otherOwner =
         customer("other-owner", "other-owner@example.test", "+919100000004", "restaurant_owner");

@@ -9,6 +9,8 @@ import java.time.Instant;
 @Table(name = "inbox_entries")
 class InboxEntry {
   @EmbeddedId private InboxEntryId id;
+
+  @SuppressWarnings("unused") // Persisted by Hibernate through field access.
   private Instant receivedAt = Instant.now();
 
   protected InboxEntry() {}

@@ -12,7 +12,10 @@ public class PaymentRefund {
   @Column(name = "order_id")
   private UUID orderId;
 
+  @SuppressWarnings("unused") // Persisted by Hibernate through field access.
   private String reason;
+
+  @SuppressWarnings("unused") // Persisted by Hibernate through field access.
   private String status = "Pending";
 
   @Column(name = "completed_at")

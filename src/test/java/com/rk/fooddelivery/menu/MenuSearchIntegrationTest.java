@@ -22,7 +22,7 @@ class MenuSearchIntegrationTest extends IntegrationTestSupport {
   @BeforeEach
   void fixtures() {
     UUID owner = user("Owner", "owner@menu.test", "+919300000001", "restaurant_owner", "owner");
-    UUID customer = user("Customer", "customer@menu.test", "+919300000002", "customer", "customer");
+    user("Customer", "customer@menu.test", "+919300000002", "customer", "customer");
     UUID city =
         jdbc.queryForObject(
             "INSERT INTO cities (name,state,country,currency) VALUES ('Delhi','Delhi','India','INR') RETURNING id",

@@ -28,7 +28,7 @@ the user will switch models before implementation resumes.
    and have one coordinator own shared files and integrate to main. Inspect the
    actual next unused migration version (main currently includes V16).
 4. Run `JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home
-   ./mvnw -DskipTests compile` after each integrated task; fix compilation failures
+./mvnw -DskipTests compile` after each integrated task; fix compilation failures
    immediately. Commit that numbered task's implementation to main, without
    bundling unrelated staged changes. Record its commit, produced contracts,
    compile result and deferred test classes as "implemented; verification
@@ -247,13 +247,13 @@ Use at most three implementation workers plus the coordinator. Keep a worker
 on a feature lane across related slices; send follow-ups instead of spawning a
 fresh implementer/reviewer for each checklist item. Dispatch only ready work.
 
-| Wave | Lane A | Lane B | Lane C | Required join |
-| --- | --- | --- | --- | --- |
-| 1, after verified 3.6 | 4 menu/search, then 5 cart | 6 events/notifications | 12 public catalog references and API request draft only | Integrate 4, 5, 6 before 7 |
-| 2 | 7 checkout, shared order contracts and idempotency | Finish any wave-1 work; otherwise release worker | Continue 12 draft against frozen routes | Integrate and verify 7 before runtime work on 8/10 |
-| 3 | 8 payment/refund, then 9 owner lifecycle | 10 offers/assignment using committed fixtures | 12 seeder after 4–7; 13 race-script/video-outline drafts | Integrate 8, 9, then 10; task 10's final command includes task 9 |
-| 4, after 9 and 10 | 11 pickup/delivery | 11 reviews, in disjoint review files | Finish 12 API examples and 13 scripts | Integrate both task-11 slices in one task-11 commit |
-| 5 | 12 full demo happy-path verification and commit | 13 recovery tests/docs on integrated 11; no broker disruption during another run | No extra worker unless a concrete independent item remains | Commit 12, then final verification and commit 13 |
+| Wave                  | Lane A                                             | Lane B                                                                           | Lane C                                                     | Required join                                                    |
+| --------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------- |
+| 1, after verified 3.6 | 4 menu/search, then 5 cart                         | 6 events/notifications                                                           | 12 public catalog references and API request draft only    | Integrate 4, 5, 6 before 7                                       |
+| 2                     | 7 checkout, shared order contracts and idempotency | Finish any wave-1 work; otherwise release worker                                 | Continue 12 draft against frozen routes                    | Integrate and verify 7 before runtime work on 8/10               |
+| 3                     | 8 payment/refund, then 9 owner lifecycle           | 10 offers/assignment using committed fixtures                                    | 12 seeder after 4–7; 13 race-script/video-outline drafts   | Integrate 8, 9, then 10; task 10's final command includes task 9 |
+| 4, after 9 and 10     | 11 pickup/delivery                                 | 11 reviews, in disjoint review files                                             | Finish 12 API examples and 13 scripts                      | Integrate both task-11 slices in one task-11 commit              |
+| 5                     | 12 full demo happy-path verification and commit    | 13 recovery tests/docs on integrated 11; no broker disruption during another run | No extra worker unless a concrete independent item remains | Commit 12, then final verification and commit 13                 |
 
 Task 10 does not call task 8 or 9 services to arrange its tests: use committed
 paid/Accepted/Preparing/Ready fixtures through the test helper. This permits
@@ -300,9 +300,9 @@ Task 12/13 drafts are preparation only: never mark them complete early.
   entities before reuse. Add shared committed paid-order fixture builders in
   task 7 so later workers do not duplicate setup or call unfinished services.
 - Task 7 supplies `IdempotencyService.execute(UUID actorId, String operation,
-  String key, String requestHash, Supplier<StoredResponse> mutation): StoredResponse`,
+String key, String requestHash, Supplier<StoredResponse> mutation): StoredResponse`,
   joining the caller transaction, plus `StoredResponse(int status, String body,
-  String location)` (nullable location). Operation includes resource identity.
+String location)` (nullable location). Operation includes resource identity.
   Canonical request hashing and response serialization live in this one module.
   A duplicate replays before current-state/cart checks; failed work rolls back
   both business changes and receipt. Feature controllers derive actor IDs from
@@ -322,18 +322,18 @@ Each row is a sequence of focused red/green cycles. Use the named test classes
 in the task below; add methods there instead of another framework or harness.
 Finish a slice, record its concrete result, and continue without a review wait.
 
-| Task | Slice sequence | Completion evidence |
-| --- | --- | --- |
-| 4 | Owner category/item writes and stock delta → menu search → restaurant spatial search | Ownership, concurrent stock adjustment and combined filters/radius/pagination tests |
-| 5 | Basic cart/version → restaurant replacement → concurrent first-cart/replacement | CartIntegrationTest; no stock reservation and no mixed restaurant |
-| 6 | Transactional outbox → confirmed publish/routing → inbox/retry/subscriber isolation | EventDeliveryIntegrationTest with real RabbitMQ and rollback/dedup checks |
-| 7 | Shared order/idempotency mappings → one checkout + snapshots → rollback/replay → stock contention | CheckoutConcurrencyTest including 20 customers/stock 5 and CartIntegrationTest |
-| 8 | Signed webhook + receipts → failure/expiry/release → late success/refund | PaymentIntegrationTest and CheckoutConcurrencyTest; barrier-controlled expiry race |
-| 9 | Owner decisions + tracking → preparation/readiness → delayed response job | OrderLifecycleIntegrationTest and PaymentIntegrationTest; decision/delay race |
-| 10 | Eligibility/offers → atomic acceptance → expiry/retry rounds | DeliveryAssignmentConcurrencyTest; after task 9, integrated OrderLifecycleIntegrationTest |
-| 11 | Pickup/delivery and review implementation in parallel → combined lifecycle proof | DeliveryLifecycleIntegrationTest and ReviewIntegrationTest; one commit |
-| 12 | Early source/request drafts → deterministic seeder → executable full happy path | DemoSeedIntegrationTest after 11, including seed-twice and profile isolation |
-| 13 | Early scripts/outline → recovery fault injection → final checks/rehearsal | AsyncRecoveryIntegrationTest, test, verify, race scripts and SQL invariants |
+| Task | Slice sequence                                                                                    | Completion evidence                                                                       |
+| ---- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 4    | Owner category/item writes and stock delta → menu search → restaurant spatial search              | Ownership, concurrent stock adjustment and combined filters/radius/pagination tests       |
+| 5    | Basic cart/version → restaurant replacement → concurrent first-cart/replacement                   | CartIntegrationTest; no stock reservation and no mixed restaurant                         |
+| 6    | Transactional outbox → confirmed publish/routing → inbox/retry/subscriber isolation               | EventDeliveryIntegrationTest with real RabbitMQ and rollback/dedup checks                 |
+| 7    | Shared order/idempotency mappings → one checkout + snapshots → rollback/replay → stock contention | CheckoutConcurrencyTest including 20 customers/stock 5 and CartIntegrationTest            |
+| 8    | Signed webhook + receipts → failure/expiry/release → late success/refund                          | PaymentIntegrationTest and CheckoutConcurrencyTest; barrier-controlled expiry race        |
+| 9    | Owner decisions + tracking → preparation/readiness → delayed response job                         | OrderLifecycleIntegrationTest and PaymentIntegrationTest; decision/delay race             |
+| 10   | Eligibility/offers → atomic acceptance → expiry/retry rounds                                      | DeliveryAssignmentConcurrencyTest; after task 9, integrated OrderLifecycleIntegrationTest |
+| 11   | Pickup/delivery and review implementation in parallel → combined lifecycle proof                  | DeliveryLifecycleIntegrationTest and ReviewIntegrationTest; one commit                    |
+| 12   | Early source/request drafts → deterministic seeder → executable full happy path                   | DemoSeedIntegrationTest after 11, including seed-twice and profile isolation              |
+| 13   | Early scripts/outline → recovery fault injection → final checks/rehearsal                         | AsyncRecoveryIntegrationTest, test, verify, race scripts and SQL invariants               |
 
 Keep the complete behavioral assertions in each task below. Smaller slices do
 not remove atomicity, authorization, idempotency or failure-path requirements.
@@ -527,22 +527,22 @@ Files: `scripts/demo/checkout_race.py`, `scripts/demo/assignment_race.py`,
 
 ## Mandatory evidence matrix
 
-| Requirement | Stimulus | Evidence / invariant |
-| --- | --- | --- |
-| No overselling | 20 checkouts, stock 5 | 5 orders + pending payments, 15 conflicts, stock 0 |
-| Full atomicity | Fail second line/payment insertion | No order/lines/payment/outbox; all stock/cart unchanged |
-| Request retries | Concurrent same idempotency key | One order and one reservation |
-| One winner/order | Two eligible partner accepts together | One assignment, one 409, one assignment event |
-| One active order/partner | One partner accepts two orders together | One winner, other order remains unassigned |
-| Correct release | Duplicate payment failure/expiry/rejection | Stock restored at most once under policy |
-| Waiting states | No restaurant response; no eligible/accepting partner | Delayed / No partners available / Offers unanswered; payment and stock unchanged |
-| Action retries | Same key/payload across mutating POST actions | Same response, one transition/event; changed payload => 409 |
-| Async/nonblocking | Hold notification listener with latch | HTTP completes before listener is released |
-| Durable updates | Broker down during successful API transition | Outbox persisted; later delivery after restart |
-| Subscriber isolation | Customer listener fails | Restaurant listener succeeds; customer retry/DLQ |
-| Replay safety | Republish confirmed event after crash window | No duplicate business effect; log duplication allowed |
-| Authorization | Wrong owner/customer/partner | No mutation, appropriate 403/404 |
-| Geography | Known points, radius edge and stale presence | Correct meters, ordering and eligible offers |
+| Requirement              | Stimulus                                              | Evidence / invariant                                                             |
+| ------------------------ | ----------------------------------------------------- | -------------------------------------------------------------------------------- |
+| No overselling           | 20 checkouts, stock 5                                 | 5 orders + pending payments, 15 conflicts, stock 0                               |
+| Full atomicity           | Fail second line/payment insertion                    | No order/lines/payment/outbox; all stock/cart unchanged                          |
+| Request retries          | Concurrent same idempotency key                       | One order and one reservation                                                    |
+| One winner/order         | Two eligible partner accepts together                 | One assignment, one 409, one assignment event                                    |
+| One active order/partner | One partner accepts two orders together               | One winner, other order remains unassigned                                       |
+| Correct release          | Duplicate payment failure/expiry/rejection            | Stock restored at most once under policy                                         |
+| Waiting states           | No restaurant response; no eligible/accepting partner | Delayed / No partners available / Offers unanswered; payment and stock unchanged |
+| Action retries           | Same key/payload across mutating POST actions         | Same response, one transition/event; changed payload => 409                      |
+| Async/nonblocking        | Hold notification listener with latch                 | HTTP completes before listener is released                                       |
+| Durable updates          | Broker down during successful API transition          | Outbox persisted; later delivery after restart                                   |
+| Subscriber isolation     | Customer listener fails                               | Restaurant listener succeeds; customer retry/DLQ                                 |
+| Replay safety            | Republish confirmed event after crash window          | No duplicate business effect; log duplication allowed                            |
+| Authorization            | Wrong owner/customer/partner                          | No mutation, appropriate 403/404                                                 |
+| Geography                | Known points, radius edge and stale presence          | Correct meters, ordering and eligible offers                                     |
 
 Concurrency tests use committed fixtures and independent threads/connections.
 Coordinate start barriers to induce overlap, join all futures with timeouts,

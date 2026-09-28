@@ -15,6 +15,8 @@ public class Payment {
   private UUID orderId;
 
   private String status;
+
+  @SuppressWarnings("unused") // Persisted by Hibernate through field access.
   private String provider;
 
   @Column(name = "payment_method")
@@ -24,6 +26,8 @@ public class Payment {
   private String providerPaymentId;
 
   private BigDecimal amount;
+
+  @SuppressWarnings("unused") // Persisted by Hibernate through field access.
   private String currency;
 
   @Column(name = "expires_at")

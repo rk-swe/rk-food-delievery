@@ -4,12 +4,14 @@ import com.rk.fooddelivery.auth.CurrentUser;
 import com.rk.fooddelivery.auth.Role;
 import com.rk.fooddelivery.order.dto.OrderDtos.*;
 import com.rk.fooddelivery.order.service.CheckoutService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Orders")
 @RequestMapping("/api/orders")
 public class OrderController {
   private final CheckoutService checkout;

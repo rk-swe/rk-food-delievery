@@ -2,10 +2,12 @@ package com.rk.fooddelivery.delivery.controller;
 
 import com.rk.fooddelivery.auth.*;
 import com.rk.fooddelivery.delivery.service.DeliveryLifecycleService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Orders")
 @RequestMapping("/api/orders")
 public class DeliveryLifecycleController {
   private final DeliveryLifecycleService lifecycle;

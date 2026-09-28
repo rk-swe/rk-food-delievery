@@ -3,10 +3,12 @@ package com.rk.fooddelivery.delivery.controller;
 import com.rk.fooddelivery.auth.*;
 import com.rk.fooddelivery.delivery.service.DeliveryOfferService;
 import com.rk.fooddelivery.order.entity.Order;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Delivery Offers")
 @RequestMapping("/api/delivery-offers")
 public class DeliveryOfferController {
   private final DeliveryOfferService offers;

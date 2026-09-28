@@ -2,12 +2,14 @@ package com.rk.fooddelivery.review.controller;
 
 import com.rk.fooddelivery.auth.*;
 import com.rk.fooddelivery.review.service.ReviewService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.*;
 import java.util.*;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Reviews")
 @RequestMapping("/api/orders")
 public class ReviewController {
   record Request(@Min(1) @Max(5) int stars, @Size(max = 2000) String review) {}

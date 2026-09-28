@@ -4,11 +4,13 @@ import com.rk.fooddelivery.auth.*;
 import com.rk.fooddelivery.order.dto.*;
 import com.rk.fooddelivery.order.dto.LifecycleDtos.*;
 import com.rk.fooddelivery.order.service.OrderLifecycleService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.*;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Orders")
 public class OwnerOrderController {
   private final OrderLifecycleService orders;
   private final CurrentUser current;

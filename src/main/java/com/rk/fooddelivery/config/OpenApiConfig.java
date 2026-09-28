@@ -30,10 +30,16 @@ public class OpenApiConfig {
             List.of(
                 new io.swagger.v3.oas.models.tags.Tag().name("Account"),
                 new io.swagger.v3.oas.models.tags.Tag().name("Authentication"),
+                new io.swagger.v3.oas.models.tags.Tag().name("Cart"),
                 new io.swagger.v3.oas.models.tags.Tag().name("Cities"),
                 new io.swagger.v3.oas.models.tags.Tag().name("Cuisines"),
+                new io.swagger.v3.oas.models.tags.Tag().name("Delivery Offers"),
                 new io.swagger.v3.oas.models.tags.Tag().name("Delivery Partners"),
-                new io.swagger.v3.oas.models.tags.Tag().name("Restaurants")));
+                new io.swagger.v3.oas.models.tags.Tag().name("Menus"),
+                new io.swagger.v3.oas.models.tags.Tag().name("Orders"),
+                new io.swagger.v3.oas.models.tags.Tag().name("Payment Webhooks"),
+                new io.swagger.v3.oas.models.tags.Tag().name("Restaurants"),
+                new io.swagger.v3.oas.models.tags.Tag().name("Reviews")));
   }
 
   @Bean

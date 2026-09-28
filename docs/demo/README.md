@@ -35,8 +35,8 @@ are provisioned by an administrator or seeded for a demo.
 
 The returned JWT is HS256-signed. Its payload has only `sub` (the user UUID), `iss` (`fooddelivery`),
 `aud` (`fooddelivery-api`), `iat`, and `exp`. Roles and passwords are excluded; the application loads
-the current active user and role from the database on every bearer request. Tokens expire exactly 30
-minutes (1,800 seconds) after issuance. Paste the raw `accessToken` into Swagger's bearer authorization
+the current active user and role from the database on every bearer request. Tokens expire exactly two
+days (172,800 seconds) after issuance. Paste the raw `accessToken` into Swagger's bearer authorization
 or send `Authorization: Bearer <accessToken>`.
 
 The four seeded restaurants have stable IDs `...0301` through `...0304`; the eleven menu items are

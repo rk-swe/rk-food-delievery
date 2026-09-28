@@ -52,7 +52,7 @@ class JwtAuthenticationIntegrationTest extends IntegrationTestSupport {
   }
 
   @Test
-  void validCredentialsIssueThirtyMinuteJwt() throws Exception {
+  void validCredentialsIssueTwoDayJwt() throws Exception {
     MvcResult result =
         mockMvc
             .perform(
@@ -66,14 +66,14 @@ class JwtAuthenticationIntegrationTest extends IntegrationTestSupport {
             .andExpect(jsonPath("$.*", hasSize(3)))
             .andExpect(jsonPath("$.accessToken", not(emptyOrNullString())))
             .andExpect(jsonPath("$.tokenType").value("Bearer"))
-            .andExpect(jsonPath("$.expiresIn").value(1800))
+            .andExpect(jsonPath("$.expiresIn").value(172800))
             .andReturn();
 
     Jwt jwt = jwtDecoder.decode(accessToken(result));
     assertThat(jwt.getSubject()).isEqualTo(customerId.toString());
     assertThat(jwt.getClaimAsString("iss")).isEqualTo("fooddelivery");
     assertThat(jwt.getAudience()).containsExactly("fooddelivery-api");
-    assertThat(jwt.getExpiresAt()).isEqualTo(jwt.getIssuedAt().plusSeconds(1800));
+    assertThat(jwt.getExpiresAt()).isEqualTo(jwt.getIssuedAt().plusSeconds(172800));
     assertThat(jwt.getClaims())
         .doesNotContainKeys("name", "email", "username", "password", "hash", "role", "authority");
   }

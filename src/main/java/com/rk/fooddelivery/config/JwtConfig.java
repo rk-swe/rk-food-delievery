@@ -28,7 +28,7 @@ public class JwtConfig {
 
   public static final String ISSUER = "fooddelivery";
   public static final String AUDIENCE = "fooddelivery-api";
-  public static final Duration LIFETIME = Duration.ofSeconds(1800);
+  public static final Duration LIFETIME = Duration.ofDays(2);
 
   @Bean
   JwtEncoder jwtEncoder(@Value("${JWT_SECRET}") String encodedSecret) {

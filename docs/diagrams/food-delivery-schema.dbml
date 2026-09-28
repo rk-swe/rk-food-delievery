@@ -1,0 +1,425 @@
+// Food Delivery schema
+// Generated from Flyway migrations V1 through V19 on 2026-09-28.
+// Import this file at https://dbdiagram.io to view or export the ER diagram.
+
+Enum user_role {
+  admin
+  restaurant_owner
+  customer
+  delivery_partner
+}
+
+Enum diet_type {
+  "Veg"
+  "Non Veg"
+}
+
+Enum order_status {
+  "Placed"
+  "Accepted"
+  "Rejected"
+  "Preparing"
+  "Ready for pickup"
+  "Out for delivery"
+  "Delivered"
+  "Cancelled"
+}
+
+Enum payment_status {
+  "Pending"
+  "Success"
+  "Failed"
+}
+
+Table users {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  name text [not null]
+  email text [not null]
+  phone_number text [not null]
+  role user_role [not null]
+  location "geography(Point, 4326)"
+  active boolean [not null, default: true]
+  online boolean [not null, default: false]
+  location_updated_at timestamptz
+  cart_version bigint [not null, default: 0]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_by uuid
+  updated_by uuid
+
+  Indexes {
+    (role, phone_number) [unique]
+    (role, email) [unique, note: 'Unique comparison is case-insensitive in PostgreSQL']
+  }
+}
+
+Table user_credentials {
+  user_id uuid [pk, not null]
+  username text [not null, note: 'Unique case-insensitively in PostgreSQL']
+  password_hash text [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table cities {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  name text [not null]
+  state text [not null]
+  country text [not null]
+  currency varchar(3) [not null]
+  active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_by uuid
+  updated_by uuid
+
+  Indexes {
+    (name, state, country) [unique, note: 'Unique comparison is case-insensitive in PostgreSQL']
+  }
+}
+
+Table restaurants {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  name text [not null]
+  description text
+  image_url text
+  owner_id uuid [not null]
+  cost_for_two numeric(10,2) [not null]
+  diet_type diet_type [not null]
+  average_rating numeric(3,2) [not null, default: 0]
+  rating_count integer [not null, default: 0]
+  address_line_1 text [not null]
+  address_line_2 text
+  city_id uuid [not null]
+  location "geography(Point, 4326)" [not null]
+  active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_by uuid
+  updated_by uuid
+}
+
+Table restaurant_timings {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  restaurant_id uuid [not null]
+  day varchar(9) [not null, note: 'Monday through Sunday']
+  start_time time
+  end_time time
+  is_open boolean [not null, default: false]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_by uuid
+  updated_by uuid
+
+  Indexes {
+    (restaurant_id, day) [unique]
+  }
+}
+
+Table cuisines {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  name text [not null, note: 'Unique case-insensitively in PostgreSQL']
+  image_url text
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_by uuid
+  updated_by uuid
+}
+
+Table restaurant_cuisines {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  restaurant_id uuid [not null]
+  cuisine_id uuid [not null]
+  sort_order integer [not null, default: 0]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_by uuid
+  updated_by uuid
+
+  Indexes {
+    (restaurant_id, cuisine_id) [unique]
+  }
+}
+
+Table menu_categories {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  restaurant_id uuid [not null]
+  name text [not null]
+  sort_order integer [not null, default: 0]
+  item_count integer [not null, default: 0]
+  active boolean [not null, default: true]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_by uuid
+  updated_by uuid
+
+  Indexes {
+    (id, restaurant_id) [unique]
+    (restaurant_id, name) [unique, note: 'Unique comparison is case-insensitive in PostgreSQL']
+  }
+}
+
+Table menu_items {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  restaurant_id uuid [not null]
+  category_id uuid [not null]
+  name text [not null]
+  description text
+  image_url text
+  ingredients text
+  calories_kcal integer
+  diet_type diet_type [not null]
+  price numeric(10,2) [not null]
+  sort_order integer [not null, default: 0]
+  average_rating numeric(3,2) [not null, default: 0]
+  total_ratings integer [not null, default: 0]
+  is_available boolean [not null, default: true]
+  available_quantity integer [not null, default: 0]
+  cook_duration_seconds integer
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_by uuid
+  updated_by uuid
+
+  Indexes {
+    (id, restaurant_id) [unique]
+  }
+}
+
+Table coupons {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  code text [not null, note: 'Unique case-insensitively in PostgreSQL']
+  name text [not null]
+  description text
+  min_spend numeric(10,2) [not null, default: 0]
+  discount_upto numeric(10,2)
+  type varchar(10) [not null, note: 'flat or percentage']
+  discount_value numeric(10,2) [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  created_by uuid
+  updated_by uuid
+}
+
+Table carts {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  customer_id uuid [not null, unique]
+  restaurant_id uuid [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (id, restaurant_id) [unique]
+  }
+}
+
+Table cart_items {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  cart_id uuid [not null]
+  restaurant_id uuid [not null]
+  menu_item_id uuid [not null]
+  quantity integer [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (cart_id, menu_item_id) [unique]
+  }
+}
+
+Table orders {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  customer_id uuid [not null]
+  restaurant_id uuid [not null]
+  order_status order_status [not null, default: 'Placed']
+  payment_status payment_status [not null, default: 'Pending']
+  delivery_partner_id uuid
+  sub_total_amount numeric(10,2) [not null]
+  delivery_fee numeric(10,2) [not null, default: 0]
+  platform_fee numeric(10,2) [not null, default: 0]
+  tax_percent numeric(5,2) [not null, default: 0]
+  tax_amount numeric(10,2) [not null, default: 0]
+  coupon_code text
+  discount_amount numeric(10,2) [not null, default: 0]
+  total_amount numeric(10,2) [not null]
+  address_line_1 text [not null]
+  address_line_2 text
+  city text [not null]
+  state text [not null]
+  country text [not null]
+  location "geography(Point, 4326)" [not null]
+  order_rating smallint
+  order_rating_review text
+  delivery_partner_rating smallint
+  version integer [not null, default: 0]
+  payment_deadline_at timestamptz
+  restaurant_response_at timestamptz
+  stock_released_at timestamptz
+  assignment_status varchar(30) [not null, default: 'Not started']
+  assignment_round integer [not null, default: 0]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table order_items {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  order_id uuid [not null]
+  menu_item_id uuid [not null]
+  quantity integer [not null]
+  unit_price numeric(10,2) [not null]
+  sub_total numeric(10,2) [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (order_id, menu_item_id) [unique]
+  }
+}
+
+Table payments {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  order_id uuid [not null]
+  status payment_status [not null, default: 'Pending']
+  provider varchar(30) [not null, default: 'Mock']
+  payment_method varchar(30) [not null, note: 'UPI, Card, or Cash on delivery']
+  provider_payment_id text
+  amount numeric(10,2) [not null]
+  status_reason text
+  expires_at timestamptz
+  currency varchar(3) [not null, default: 'INR']
+  refunded_at timestamptz
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (provider, provider_payment_id) [unique]
+  }
+}
+
+Table payment_webhook_receipts {
+  provider_event_id varchar(255) [pk, not null]
+  payload_hash varchar(128) [not null]
+  received_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table payment_refunds {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  order_id uuid [not null]
+  reason text [not null]
+  status varchar(30) [not null, default: 'Pending']
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+  completed_at timestamptz
+
+  Indexes {
+    (order_id, reason) [unique]
+  }
+}
+
+Table delivery_offers {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  order_id uuid [not null]
+  partner_id uuid [not null]
+  round integer [not null]
+  status varchar(30) [not null, default: 'Offered']
+  expires_at timestamptz [not null]
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (order_id, partner_id, round) [unique]
+  }
+}
+
+Table idempotency_records {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  actor_id uuid [not null]
+  operation varchar(120) [not null]
+  idempotency_key varchar(255) [not null]
+  request_hash varchar(128) [not null]
+  resource_id uuid
+  response_status integer [not null]
+  response_body jsonb [not null]
+  response_location text
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (actor_id, operation, idempotency_key) [unique]
+  }
+}
+
+Table outbox_events {
+  id uuid [pk, not null]
+  event_type varchar(100) [not null]
+  aggregate_id uuid [not null]
+  aggregate_version integer [not null]
+  payload jsonb [not null]
+  occurred_at timestamptz [not null]
+  published_at timestamptz
+  publish_attempts integer [not null, default: 0]
+  last_error text
+}
+
+Table inbox_entries {
+  consumer varchar(100) [not null]
+  event_id uuid [not null]
+  received_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (consumer, event_id) [pk]
+  }
+}
+
+Table notification_deliveries {
+  id uuid [pk, not null, default: `gen_random_uuid()`]
+  recipient varchar(100) [not null]
+  event_id uuid [not null]
+  aggregate_id uuid [not null]
+  aggregate_version integer [not null]
+  event_type varchar(100) [not null]
+  status varchar(30) [not null, default: 'DELIVERED']
+  created_at timestamptz [not null, default: `CURRENT_TIMESTAMP`]
+
+  Indexes {
+    (recipient, event_id) [unique]
+  }
+}
+
+// Foreign keys declared by the Flyway schema.
+Ref: users.created_by > users.id
+Ref: users.updated_by > users.id
+Ref: user_credentials.user_id - users.id
+Ref: cities.created_by > users.id
+Ref: cities.updated_by > users.id
+Ref: restaurants.owner_id > users.id
+Ref: restaurants.city_id > cities.id
+Ref: restaurants.created_by > users.id
+Ref: restaurants.updated_by > users.id
+Ref: restaurant_timings.restaurant_id > restaurants.id
+Ref: restaurant_timings.created_by > users.id
+Ref: restaurant_timings.updated_by > users.id
+Ref: cuisines.created_by > users.id
+Ref: cuisines.updated_by > users.id
+Ref: restaurant_cuisines.restaurant_id > restaurants.id
+Ref: restaurant_cuisines.cuisine_id > cuisines.id
+Ref: restaurant_cuisines.created_by > users.id
+Ref: restaurant_cuisines.updated_by > users.id
+Ref: menu_categories.restaurant_id > restaurants.id
+Ref: menu_categories.created_by > users.id
+Ref: menu_categories.updated_by > users.id
+Ref: menu_items.restaurant_id > restaurants.id
+Ref: menu_items.(category_id, restaurant_id) > menu_categories.(id, restaurant_id)
+Ref: menu_items.created_by > users.id
+Ref: menu_items.updated_by > users.id
+Ref: coupons.created_by > users.id
+Ref: coupons.updated_by > users.id
+Ref: carts.customer_id > users.id
+Ref: carts.restaurant_id > restaurants.id
+Ref: cart_items.(cart_id, restaurant_id) > carts.(id, restaurant_id)
+Ref: cart_items.(menu_item_id, restaurant_id) > menu_items.(id, restaurant_id)
+Ref: orders.customer_id > users.id
+Ref: orders.restaurant_id > restaurants.id
+Ref: orders.delivery_partner_id > users.id
+Ref: order_items.order_id > orders.id
+Ref: order_items.menu_item_id > menu_items.id
+Ref: payments.order_id > orders.id
+Ref: payment_refunds.order_id > orders.id
+Ref: delivery_offers.order_id > orders.id
+Ref: delivery_offers.partner_id > users.id
+Ref: idempotency_records.actor_id > users.id
